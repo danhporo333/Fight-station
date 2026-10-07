@@ -76,6 +76,11 @@ Liệt kê cho user (ngắn gọn) rồi chờ đồng ý:
   3. `npm run prisma:migrate` để áp dụng, rồi `npx prisma generate`
 - **Không kết nối được MySQL** → dừng ở `prisma validate` + `npx prisma generate`, báo user cần tạo database rồi chạy lại bước migration. Không dùng `db push`.
 - Feature cần dữ liệu ban đầu (`shop` dòng `id = 1`, `auth` tài khoản owner) → thêm vào `prisma/seed.ts` (tạo nếu chưa có, khai báo `migrations.seed` trong `prisma.config.ts`). Mật khẩu seed đọc từ biến môi trường, thêm biến đó vào `.env.example` và `src/config/env.ts`.
+- **Dữ liệu mẫu**: nếu `prisma/seed-data.ts` có mảng cho bảng của feature (`seedShop`, `seedBranches`, `seedGameCategories` + `seedGames`, `seedPricePlans`, `seedMenu`, `seedPromotions`) → thêm hàm `seed<Feature>()` vào `prisma/seed.ts`, gọi trong `main()` **theo thứ tự khóa ngoại** (bảng cha trước):
+  - Đổi tên trường gốc sang trường Prisma theo `DATABASE.md` (vd `price` → `priceVnd`, `color` → `accentColor`, `desc` → `description`); chuỗi rỗng `''` → `null`; chỉ số trong mảng → `sortOrder`.
+  - Chạy lại nhiều lần vẫn an toàn và **không ghi đè dữ liệu chủ quán đã sửa**: bảng có cột UNIQUE (`game.title`, `game_category.name`, `menu_category.name`…) dùng `upsert` với `update: {}`; bảng không có UNIQUE (`branch`, `price_plan`, `promotion`) chỉ seed khi bảng đang trống (`count() === 0`).
+  - Bảng con (`price_plan_feature`, `menu_item`) tạo cùng bảng cha bằng nested `create`; game nối thể loại qua `category` → `label` của `seedGameCategories`.
+  - Chạy `npx prisma db seed` hai lần liên tiếp, lần hai không được tạo thêm dòng.
 
 ### Bước 3: Sinh file feature
 Cấu trúc **file phẳng** (theo `docs/BE-ARCHITECTURE.md` mục 3), chỉ tạo file thật sự cần:

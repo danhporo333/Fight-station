@@ -78,7 +78,7 @@ Liệt kê cho user (ngắn gọn) rồi chờ đồng ý:
 - Feature cần dữ liệu ban đầu (`shop` dòng `id = 1`, `auth` tài khoản owner) → thêm vào `prisma/seed.ts` (tạo nếu chưa có, khai báo `migrations.seed` trong `prisma.config.ts`). Mật khẩu seed đọc từ biến môi trường, thêm biến đó vào `.env.example` và `src/config/env.ts`.
 - **Dữ liệu mẫu**: nếu `prisma/seed-data.ts` có mảng cho bảng của feature (`seedShop`, `seedBranches`, `seedGameCategories` + `seedGames`, `seedPricePlans`, `seedMenu`, `seedPromotions`) → thêm hàm `seed<Feature>()` vào `prisma/seed.ts`, gọi trong `main()` **theo thứ tự khóa ngoại** (bảng cha trước):
   - Đổi tên trường gốc sang trường Prisma theo `DATABASE.md` (vd `price` → `priceVnd`, `color` → `accentColor`, `desc` → `description`); chuỗi rỗng `''` → `null`; chỉ số trong mảng → `sortOrder`.
-  - Chạy lại nhiều lần vẫn an toàn và **không ghi đè dữ liệu chủ quán đã sửa**: bảng có cột UNIQUE (`game.title`, `game_category.name`, `menu_category.name`…) dùng `upsert` với `update: {}`; bảng không có UNIQUE (`branch`, `price_plan`, `promotion`) chỉ seed khi bảng đang trống (`count() === 0`).
+  - Chạy lại nhiều lần vẫn an toàn và **không đụng dữ liệu chủ quán**: dữ liệu mẫu của feature **chỉ seed khi bảng chính đang trống** (`count() === 0`, vd `game`, `branch`, `menu_item`). **Không** `upsert` theo tên khi bảng đã có dữ liệu: dòng chủ quán đã xóa hoặc đổi tên sẽ bị seed tạo lại (đã xảy ra với `game` 2026-10-07). Bảng phụ có UNIQUE (`game_category.name`) có thể `upsert` bên trong lần seed đầu đó.
   - Bảng con (`price_plan_feature`, `menu_item`) tạo cùng bảng cha bằng nested `create`; game nối thể loại qua `category` → `label` của `seedGameCategories`.
   - Chạy `npx prisma db seed` hai lần liên tiếp, lần hai không được tạo thêm dòng.
 

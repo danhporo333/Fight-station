@@ -5,8 +5,8 @@
 | **Phía** | BE (backend) |
 | **Chế độ** | `code` |
 | **Target** | `branch` |
-| **Ngày viết** | 2026-10-07 |
-| **Tài liệu đã đọc** | `backend/src/features/branch/context.md` (trạng thái ✅ Đã cài đặt 2026-10-07, đã có phòng PC), `backend/docs/BE-ARCHITECTURE.md` (mục 3, 5, 8), `01-share-docs/DATABASE.md`, `01-share-docs/API_SPEC.md` |
+| **Ngày viết** | 2026-10-07 (sửa lại sau khi có feature `game`: bảng `branch_game` và `BranchLookup` đã dùng thật) |
+| **Tài liệu đã đọc** | `backend/src/features/branch/context.md` (trạng thái ✅ Đã cài đặt 2026-10-07, đã có phòng PC), `backend/docs/BE-ARCHITECTURE.md` (mục 3, 5, 8), `01-share-docs/DATABASE.md`, `01-share-docs/API_SPEC.md`, `backend/src/features/game/context.md` (phần chi nhánh) |
 
 > Bài viết dựa trên tài liệu tại ngày viết. Nếu code `branch` thay đổi sau đó, đối chiếu lại với `context.md`.
 
@@ -127,7 +127,7 @@ Nơi **duy nhất** của feature dùng Prisma.
 | `findById(id, includeInactive)` | Một chi nhánh; không có `includeInactive` thì chỉ tìm trong chi nhánh đang hoạt động |
 | `create`, `update`, `delete` | Thêm, sửa, xóa |
 | `countByIds(ids)` | Đếm bao nhiêu id trong danh sách là chi nhánh có thật (dành cho `game`) |
-| `findAllIds()` | Id của mọi chi nhánh (dành cho `game`) |
+| `findAllIds()` | Id của mọi chi nhánh (làm sẵn, hiện **chưa dùng**) |
 
 **Bên trong `findMany`:**
 - Mặc định lọc `isActive: true`; chỉ bỏ lọc khi `filter.includeInactive` là `true`.
@@ -159,12 +159,15 @@ Quy tắc nghiệp vụ của `branch`, đồng thời là "cửa" để feature
 
 **BranchLookup (dành cho `game`)**
 - **`existsAll(ids)`**: `true` nếu mọi id đều là chi nhánh có thật. Bỏ id trùng trước khi đếm, danh sách rỗng → `true`. Khi thêm game với `branchIds: [1, 99]`, `game` hỏi hàm này để trả lỗi `GAME_006` "chi nhánh không tồn tại".
-- **`findAllIds()`**: id của mọi chi nhánh, dùng khi game "có ở mọi chi nhánh".
+- **`findAllIds()`**: id của mọi chi nhánh. Làm sẵn cho cách "ghi sẵn mọi chi nhánh", nhưng dự án đã chốt cách khác (xem dưới) nên **hiện chưa dùng**.
 
-**Vì sao `game` không gọi thẳng repository của `branch`?** Quy tắc dự án: feature không import nội bộ của nhau. `game` sẽ tự khai báo một interface `BranchLookup` (chỉ gồm 2 hàm trên), và `app.ts` truyền `branchService` vào. `game` chỉ biết "có ai đó trả lời được 2 câu hỏi này", không biết bên trong `branch` làm thế nào. Đây là **dependency injection** (xem BE-ARCHITECTURE mục 5, 8).
+**"Có ở mọi chi nhánh" lưu thế nào?** Đã chốt: game **không có dòng nào** trong `branch_game` nghĩa là có ở mọi chi nhánh, kể cả chi nhánh mở sau này. Vì vậy `game` chỉ cần hỏi `existsAll`; không phải ghi sẵn id của mọi chi nhánh.
+
+**Vì sao `game` không gọi thẳng repository của `branch`?** Quy tắc dự án: feature không import nội bộ của nhau. `game` tự khai báo interface `BranchLookup` trong `game.types.ts` (hiện chỉ gồm `existsAll`), và `app.ts` truyền `branchService` vào `new GameService(gameRepository, branchService)`. `game` chỉ biết "có ai đó trả lời được câu hỏi này", không biết bên trong `branch` làm thế nào. Đây là **dependency injection** (xem BE-ARCHITECTURE mục 5, 8).
 
 ### 💡 Điểm cần nhớ
-- Xóa chi nhánh sẽ tự gỡ nó khỏi các game (`ON DELETE CASCADE` trên bảng `branch_game`). Bảng đó thuộc `game` và **chưa được tạo**.
+- Xóa chi nhánh sẽ tự gỡ nó khỏi các game: bảng `branch_game` (thuộc `game`, migration `create_branch_game_table`) có `ON DELETE CASCADE` trên `branch_id`. Model `Branch` có thêm quan hệ `games BranchGame[]`, bảng `branch` không đổi.
+- ⚠️ Game chỉ có ở **đúng** chi nhánh bị xóa sẽ mất dòng nối cuối cùng, nên tự thành "có ở mọi chi nhánh". Dự án đã chấp nhận điều này (quán hiếm khi xóa chi nhánh, nên dùng ẩn); hộp xác nhận xóa chi nhánh ở frontend có báo trước.
 
 ---
 
@@ -220,7 +223,7 @@ DELETE /:id   → requireOwner  → validate(params)                         →
 
 ## 🔗 Liên kết
 
-- **Được gọi bởi:** `src/app.ts` (route `/api/v1/branches`); sau này `GameService` qua `BranchLookup`. Frontend gọi qua `branch.service.ts`.
+- **Được gọi bởi:** `src/app.ts` (route `/api/v1/branches`); `GameService` qua `BranchLookup` (`existsAll`). Frontend gọi qua `branch.service.ts`.
 - **Gọi tới:** Prisma (`db.branch`); `guards.optionalAdmin`, `guards.requireOwner` của `auth`; `shared/utils/zod-fields`, `shared/utils/pagination`.
 - **Tài liệu:** `backend/src/features/branch/context.md`; `BE-ARCHITECTURE.md` mục 3 (giải phẫu feature), mục 5 (giao tiếp giữa feature), mục 8 (DI, chuỗi middleware); `DATABASE.md` (bảng `branch`); `API_SPEC.md` mục 3 (query chung), 4 (envelope, `meta`), 5 (`BRANCH_001`).
 
@@ -229,7 +232,7 @@ DELETE /:id   → requireOwner  → validate(params)                         →
 - `PUT` cập nhật một phần: schema sửa **không có giá trị mặc định**, trường không gửi giữ nguyên.
 - Danh sách luôn có `meta` và thứ tự ổn định (`id` ở cuối `orderBy`).
 - `BranchService` là cầu nối cho `game` qua interface, không import chéo.
-- Chưa có: test tự động (`/be-test branch`), bảng `branch_game` (chờ `game`).
+- Chưa có: test tự động (`/be-test branch`).
 
 ---
 

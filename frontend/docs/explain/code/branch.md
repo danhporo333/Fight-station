@@ -5,7 +5,7 @@
 | **Phía** | FE (frontend) |
 | **Chế độ** | `code` |
 | **Target** | `branch` |
-| **Ngày viết** | 2026-10-07 |
+| **Ngày viết** | 2026-10-07 (sửa lại sau khi có feature `game`: `BranchPicker` đã dùng ở `/games`) |
 | **Tài liệu đã đọc** | `frontend/src/features/branch/context.md` (trạng thái ✅ Đã cài đặt 2026-10-07, đã có phòng PC), `frontend/docs/FE-ARCHITECTURE.md` (mục 3, 5, 6, 9, 10) |
 
 > Bài viết dựa trên tài liệu tại ngày viết. Nếu code `branch` thay đổi sau đó, đối chiếu lại với `context.md`.
@@ -21,7 +21,7 @@ Phía giao diện của `branch` có **2 mặt**:
 | **Xem chi nhánh** | Trang `/branches`, mục "Hệ thống chi nhánh" ở trang chủ, số liệu "4 chi nhánh / 57 máy PS5" ở hero | Khách |
 | **Quản lý chi nhánh** | `/admin/branches` (bảng), `/admin/branches/new` (thêm), `/admin/branches/:id/edit` (sửa) | Chỉ chủ quán |
 
-Ngoài ra feature còn làm sẵn **`BranchPicker`** (dãy nút chọn chi nhánh) để trang game dùng sau này.
+Ngoài ra feature còn có **`BranchPicker`** (dãy nút chọn chi nhánh) để lọc game ở trang `/games`.
 
 Ví dụ đời thường: khách nhìn **tấm bản đồ chuỗi cửa hàng** dán ở cửa; chủ quán có **sổ quản lý** để thêm, sửa, gạch tạm hay xóa cửa hàng. Cả hai cùng đọc một nguồn: cache TanStack Query lấy từ API `/branches`.
 
@@ -114,7 +114,7 @@ Bọc service bằng TanStack Query: tự lo đang tải, lỗi, cache, làm m�
 - **`toBranchFormValues(branch)`**: API → form (`null` → `''`, số → chuỗi).
 - **`toBranchPayload(values)`**: form → API (`''` → `null`, chuỗi số → `number`).
 - **`EMPTY_BRANCH_FORM`**: giá trị ban đầu của form thêm mới (các ô số là `'0'`, "Đang hoạt động" được tick).
-- **`BRANCH_SEARCH_PARAM = 'branch'`**: tên tham số URL mà `BranchPicker` ghi và trang game sẽ đọc.
+- **`BRANCH_SEARCH_PARAM = 'branch'`**: tên tham số URL mà `BranchPicker` ghi và trang `/games` (`src/pages/GamesPage.tsx`) đọc.
 
 ---
 
@@ -173,7 +173,16 @@ const { data: shop } = useShop()
 - Dãy nút: "Tất cả chi nhánh" và tên từng chi nhánh. Bấm thì ghi `?branch=<id>` lên URL; bấm "Tất cả" thì xóa tham số đó.
 - **Ghi lên URL, không lưu vào store**: gửi link cho bạn bè là họ thấy đúng bộ lọc, bấm "Quay lại" trên trình duyệt cũng đúng.
 - Đổi chi nhánh thì xóa `page` (quay về trang 1), và dùng `replace` để không làm dài lịch sử trình duyệt.
-- **Chưa có trang nào dùng**: sẽ được ghép vào trang game (`src/pages/GamesPage.tsx`) khi làm feature `game`.
+- Giao diện: nút vuông viền cam, chữ mono in hoa (theme neon); nút đang chọn có nền cam nhạt.
+- **Dùng ở `/games`**: `src/pages/GamesPage.tsx` đặt `BranchPicker` trên bộ lọc thể loại, đọc `?branch=` bằng `BRANCH_SEARCH_PARAM` rồi truyền `branchId` vào `GameList` của feature `game`. Hai feature không import nhau, chỉ gặp nhau ở URL và ở trang ghép.
+
+```tsx
+// src/pages/GamesPage.tsx (rút gọn)
+const branchId = readIdParam(searchParams.get(BRANCH_SEARCH_PARAM))
+<BranchPicker />
+<GameFilters />
+<GameList query={{ branchId, categoryId, q }} />
+```
 
 ---
 
@@ -200,7 +209,7 @@ const { data: shop } = useShop()
 
 | Trang | Làm gì |
 |---|---|
-| `AdminBranchesPage` | `useBranches({ includeInactive: true })` → `BranchTable`. Bấm "Xóa" mở `ConfirmDialog`: nói rõ xóa thật, game ở chi nhánh này tự được gỡ, gợi ý bỏ tick "Đang hoạt động" nếu chỉ muốn ẩn tạm. Xóa xong hiện toast |
+| `AdminBranchesPage` | `useBranches({ includeInactive: true })` → `BranchTable`. Bấm "Xóa" mở `ConfirmDialog`: nói rõ xóa thật, game ở chi nhánh này tự được gỡ, game chỉ có ở riêng chi nhánh này sẽ thành "có ở mọi chi nhánh", gợi ý bỏ tick "Đang hoạt động" nếu chỉ muốn ẩn tạm. Xóa xong hiện toast |
 | `AdminBranchNewPage` | `BranchForm` với `EMPTY_BRANCH_FORM`; lưu xong về danh sách kèm toast "Đã thêm chi nhánh …" |
 | `AdminBranchEditPage` | Đọc `:id` trên URL → `useBranch(id, true)`. Id sai hoặc `BRANCH_001` → khung lỗi kèm link về danh sách. `key={branch.updatedAt}` để form khởi tạo lại khi dữ liệu đổi |
 
@@ -223,7 +232,7 @@ Lỗi khi lưu: `applyServerErrors(error, setError, BRANCH_FORM_FIELDS)` gán `d
 
 ## 🔗 Liên kết
 
-- **Được dùng bởi:** `src/pages/BranchesPage.tsx`, `src/pages/HomePage.tsx` (`BranchList`, `useBranchSummary`), `src/app/routes.tsx`, `src/app/AdminRoot.tsx`; sau này `src/pages/GamesPage.tsx` (`BranchPicker`).
+- **Được dùng bởi:** `src/pages/BranchesPage.tsx`, `src/pages/HomePage.tsx` (`BranchList`, `useBranchSummary`), `src/pages/GamesPage.tsx` (`BranchPicker`, `BRANCH_SEARCH_PARAM`), `src/app/routes.tsx`, `src/app/AdminRoot.tsx`. Form game (feature `game`) gọi thẳng API `/branches` với cùng query key `['branches', …]`, nên thêm/sửa chi nhánh cũng làm mới danh sách chi nhánh trong form game.
 - **Gọi tới:** `shared/services/api/http.ts` → backend `/api/v1/branches`.
 - **Dùng của nơi khác:** `RequireRole` (từ `auth`, ghép ở `app/`); `Button`, `TextField`, `CheckboxField`, `FormAlert`, `ConfirmDialog`, `SectionHeading`, `applyServerErrors`, `getErrorMessage` (từ `shared`).
 - **Tài liệu:** `frontend/src/features/branch/context.md`; `FE-ARCHITECTURE.md` mục 3 (giải phẫu feature), 5 (giao tiếp feature), 6 (routing), 9 (shared hay feature), 10 (theme neon).
@@ -233,7 +242,7 @@ Lỗi khi lưu: `applyServerErrors(error, setError, BRANCH_FORM_FIELDS)` gán `d
 - Form giữ ô số dạng chuỗi, lúc gửi mới đổi sang số; ô trống → `null`.
 - Thẻ chỉ hiện ô số liệu khi giá trị lớn hơn 0 (phòng PC chỉ hiện ở chi nhánh có phòng PC); không viết cứng theo id.
 - Dữ liệu của feature khác (Facebook của quán) đi vào qua prop từ trang ghép ở `src/pages/`.
-- Chưa có: test tự động (`/fe-test branch`); `BranchPicker` chưa được dùng (chờ `game`).
+- Chưa có: test tự động (`/fe-test branch`).
 
 ---
 

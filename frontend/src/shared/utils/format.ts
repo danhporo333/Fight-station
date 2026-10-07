@@ -5,6 +5,15 @@ export function formatVnd(amount: number): string {
   return `${vndFormatter.format(amount)}đ`
 }
 
+/**
+ * Giá gọn kiểu tờ menu: tròn nghìn thì viết "K" (35000 → "35K", 1250000 → "1.250K");
+ * giá lẻ vẫn ghi đủ (22500 → "22.500đ") để không làm tròn sai.
+ */
+export function formatVndShort(amount: number): string {
+  if (amount > 0 && amount % 1000 === 0) return `${vndFormatter.format(amount / 1000)}K`
+  return formatVnd(amount)
+}
+
 const VN_TIME_ZONE = 'Asia/Ho_Chi_Minh'
 
 /**

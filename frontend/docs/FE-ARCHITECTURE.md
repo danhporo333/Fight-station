@@ -177,7 +177,7 @@ Service chỉ gọi `http` và trả `{ data, meta }`. Hook không biết URL. C
 | UI component không biết nghiệp vụ: `Button`, `Modal`, `Skeleton`, `PublicLayout` | Component của feature: `GameCard`, `MenuItemRow`, `GameForm` |
 | API client (`http.ts`), `ApiError` | Service của feature: `game.service.ts` |
 | Hook toàn cục: `useDebounce`, `useDocumentTitle` | Hook của feature: `useGames`, `useDeleteGame` |
-| Utility: `formatVnd`, `formatDate`, `eventBus` | Utility của feature: `groupByCategory`, `accentClass` |
+| Utility: `formatVnd`, `formatVndShort`, `formatDate`, `eventBus` | Utility của feature: `groupByCategory`, `accentClass` |
 | Store: `auth.store`, `ui.store` | Store của feature (nếu có) |
 
 Quy tắc nhanh: chỉ một feature dùng thì để trong feature; từ **2 feature** trở lên mới chuyển vào `shared/`; thứ gì nhắc đến game, menu, giá thì không thuộc `shared/`.

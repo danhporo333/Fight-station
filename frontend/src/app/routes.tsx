@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router'
 import { authAdminRoutes, authPublicRoutes, RequireRole } from '@/features/auth'
 import { BranchFooterList, branchOwnerRoutes } from '@/features/branch'
 import { gameAdminRoutes } from '@/features/game'
+import { menuAdminRoutes, menuPublicRoutes } from '@/features/menu'
 import { ShopFooter, shopOwnerRoutes } from '@/features/shop'
 import { HomePage } from '@/pages/HomePage'
 import { ErrorFallback } from '@/shared/components/ErrorBoundary'
@@ -13,6 +14,7 @@ import { NotFoundPage } from '@/shared/components/NotFoundPage'
 const PUBLIC_NAV: PublicNavItem[] = [
   { to: '/', label: 'Trang chủ' },
   { to: '/games', label: 'Game' },
+  { to: '/menu', label: 'Menu' },
   { to: '/branches', label: 'Chi nhánh' },
 ]
 
@@ -42,7 +44,8 @@ export const router = createBrowserRouter([
         path: 'branches',
         lazy: async () => ({ Component: (await import('@/pages/BranchesPage')).BranchesPage }),
       },
-      // ...publicRoutes của feature (menu, pricing, promotions)
+      ...menuPublicRoutes,
+      // ...publicRoutes của feature (pricing, promotions)
       { path: '*', element: <NotFoundPage /> },
     ],
   },
@@ -56,7 +59,8 @@ export const router = createBrowserRouter([
       { index: true, element: <Navigate to="account" replace /> },
       ...authAdminRoutes,
       ...gameAdminRoutes,
-      // ...menuRoutes, promotionRoutes (Admin)
+      ...menuAdminRoutes,
+      // ...promotionRoutes (Admin)
       {
         // Trang chỉ owner: staff vào sẽ thấy "Không đủ quyền"
         element: <RequireRole role="owner" />,

@@ -26,6 +26,11 @@ export const ERROR_MESSAGES: Record<string, string> = {
   GAME_004: 'Tên thể loại đã tồn tại',
   GAME_005: 'Thể loại còn game, hãy chuyển hoặc xóa game trước',
   GAME_006: 'Có chi nhánh không còn tồn tại, hãy tải lại trang và chọn lại',
+
+  MENU_001: 'Không tìm thấy món (có thể đã bị xóa)',
+  MENU_002: 'Không tìm thấy nhóm menu (có thể đã bị xóa)',
+  MENU_003: 'Tên đã tồn tại (tên nhóm, hoặc tên món trong cùng nhóm)',
+  MENU_004: 'Nhóm còn món, hãy chuyển hoặc xóa món trước',
 }
 
 /** Thông báo cho người dùng từ một lỗi bất kỳ (thường là ApiError) */

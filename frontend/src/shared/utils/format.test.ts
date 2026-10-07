@@ -1,12 +1,22 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatDate, formatVnd } from './format'
+import { formatDate, formatVnd, formatVndShort } from './format'
 
 describe('formatVnd', () => {
   it('thêm dấu chấm hàng nghìn và đuôi đ', () => {
     expect(formatVnd(15000)).toBe('15.000đ')
     expect(formatVnd(0)).toBe('0đ')
     expect(formatVnd(1250000)).toBe('1.250.000đ')
+  })
+})
+
+describe('formatVndShort', () => {
+  it('tròn nghìn thì viết K, giá lẻ ghi đủ', () => {
+    expect(formatVndShort(35000)).toBe('35K')
+    expect(formatVndShort(8000)).toBe('8K')
+    expect(formatVndShort(1250000)).toBe('1.250K')
+    expect(formatVndShort(22500)).toBe('22.500đ')
+    expect(formatVndShort(0)).toBe('0đ')
   })
 })
 

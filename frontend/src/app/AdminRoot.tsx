@@ -5,6 +5,8 @@ import { AdminLayout, type AdminNavItem } from '@/shared/components/layout/Admin
 const ADMIN_NAV: AdminNavItem[] = [
   { to: '/admin/games', label: 'Game' },
   { to: '/admin/game-categories', label: 'Thể loại game' },
+  { to: '/admin/menu', label: 'Menu' },
+  { to: '/admin/menu-categories', label: 'Nhóm menu' },
   { to: '/admin/shop', label: 'Thông tin quán', ownerOnly: true },
   { to: '/admin/branches', label: 'Chi nhánh', ownerOnly: true },
   { to: '/admin/account', label: 'Tài khoản' },

@@ -17,7 +17,7 @@ Giao diện tông **cam**, hiện đại, dùng tốt trên điện thoại.
 | Chi nhánh: địa chỉ, bản đồ, số máy PS5, phòng VIP | ✔ | Chủ quán sửa | ✅ Xong |
 | Game: lọc theo thể loại, chi nhánh, tìm theo tên | ✔ | ✔ | ✅ Xong |
 | Bảng giá giờ chơi theo gói | ✔ | Chủ quán sửa | ⏳ Chưa làm |
-| Menu đồ ăn, nước uống (có trạng thái "tạm hết") | ✔ | ✔ | ⏳ Chưa làm |
+| Menu đồ ăn, nước uống (có trạng thái "tạm hết") | ✔ | ✔ | ✅ Xong |
 | Khuyến mãi, sự kiện | ✔ | ✔ | ⏳ Chưa làm |
 
 **Phân quyền:** *chủ quán* (owner) làm được mọi việc; *nhân viên* (staff) quản lý game, menu, khuyến mãi nhưng không sửa thông tin quán, chi nhánh, bảng giá. Quyền luôn được kiểm tra ở backend, giao diện chỉ ẩn bớt nút.
@@ -187,7 +187,7 @@ Dự án dùng [Claude Code](https://claude.com/claude-code) để hỗ trợ ph
 - [x] Chi nhánh (`branch`)
 - [x] Game và thể loại (`game`)
 - [ ] Bảng giá (`price-plan`)
-- [ ] Menu đồ ăn, nước uống (`menu`)
+- [x] Menu đồ ăn, nước uống (`menu`)
 - [ ] Khuyến mãi (`promotion`)
 - [ ] Test tự động đầy đủ cho từng tính năng
 - [ ] Upload ảnh (hiện chỉ lưu đường dẫn ảnh)

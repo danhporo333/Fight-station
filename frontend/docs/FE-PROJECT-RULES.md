@@ -98,7 +98,7 @@ export const gameSchema = z.object({
 });
 export type GameInput = z.infer<typeof gameSchema>;
 ```
-**Tiền, ngày, ảnh**: tiền hiển thị bằng `formatVnd(15000)` → `15.000đ`; `posterUrl`/`imageUrl` rỗng thì hiện tên bằng chữ; mọi `<img>` có `alt` và `loading="lazy"`.
+**Tiền, ngày, ảnh**: tiền hiển thị bằng `formatVnd(15000)` → `15.000đ` (bảng giá menu dùng `formatVndShort(35000)` → `35K`, giá lẻ vẫn ghi đủ); `posterUrl`/`imageUrl` rỗng thì hiện tên bằng chữ; mọi `<img>` có `alt` và `loading="lazy"`.
 
 ## 6. Anti-pattern (KHÔNG ĐƯỢC làm)
 | Vi phạm | ❌ KHÔNG NÊN | ✅ NÊN |

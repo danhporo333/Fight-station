@@ -152,6 +152,7 @@ Nếu không mở được trình duyệt: ít nhất gọi thử API qua proxy 
 ### Bước 6: Cập nhật tài liệu
 - `src/features/<feature>/context.md`: **bỏ dòng "⏳ Chưa cài đặt"**, sửa theo code thật (trang, route, component export, query key, quyết định đã chốt), xóa "Câu hỏi còn mở" đã trả lời.
 - Thêm component/hook/util vào `src/shared/` → cập nhật `docs/FE-ARCHITECTURE.md` mục 9 nếu đổi quy ước.
+- Bài giải thích của feature (`docs/explain/code/<feature>.md`, `docs/explain/flow/<feature>.md`) nếu có → hỏi user: chạy lại `/explain code|flow <feature>` (ghi đè), hay để sau. Để sau thì chèn ngay dưới bảng thông tin đầu bài dòng `> ⚠️ Code đã thay đổi ngày <YYYY-MM-DD> (<tóm tắt 1 dòng>), bài có thể đã cũ.` (chỉ sửa dòng này, không viết lại bài).
 - Không thêm chi tiết vào `../CLAUDE.md` (file gốc chỉ để điều hướng).
 
 ## Output

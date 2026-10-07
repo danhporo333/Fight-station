@@ -24,7 +24,7 @@ Skill chung ở `.claude/skills/`; skill backend ở `backend/.claude/skills/`; 
 - /fe-crud [feature]: sinh CRUD frontend (types, service, hooks, components, trang, routes lazy, ghép app/routes.tsx, cập nhật context.md)
 - /be-test, /fe-test: (chưa có) viết test
 - /git-commit [loại] [mô tả]: viết commit message hoàn toàn bằng tiếng Việt (vd `tính năng(game): thêm trang danh sách game`), chỉ commit file đã stage
-- /explain [code|concept|flow|why] [target]: giải thích code/khái niệm cho người mới, lưu vào `backend/docs/explain/` hoặc `frontend/docs/explain/`
+- /explain [code|concept|flow|why|error] [target]: giải thích code/khái niệm/mã lỗi cho người mới, lưu vào `backend/docs/explain/` hoặc `frontend/docs/explain/`
 
 ### Skill Routing
 
@@ -32,11 +32,11 @@ Skill chung ở `.claude/skills/`; skill backend ở `backend/.claude/skills/`; 
 - "viết test", "add tests" → `/be-test` hoặc `/fe-test`
 - "init project", "setup structure" → `/init-base`
 - "commit", "tạo commit", "viết commit message" → `/git-commit`
-- "giải thích", "explain", "tại sao", "how does this work" → `/explain`
+- "giải thích", "explain", "tại sao", "how does this work" + muốn bài lưu lại để học → `/explain` (câu hỏi nhanh thì trả lời thẳng)
 - Skill chưa có thì báo user, không tự làm thay
 
 ## Quy tắc giữ file này gọn
 
 - Không viết thông tin chi tiết vào đây. Viết vào đúng nơi: tính năng → `context.md` của tính năng; quy ước backend/frontend → `CLAUDE.md` hoặc `docs/` của phần đó; API và DB → `01-share-docs/`. Ở đây chỉ thêm một dòng trỏ tới.
-- Trước khi sửa một tính năng, đọc `context.md` của nó; sửa xong thì cập nhật `context.md` theo code thật.
+- Trước khi sửa một tính năng, đọc `context.md` của nó; sửa xong thì cập nhật `context.md` theo code thật. Nếu tính năng có bài `docs/explain/{code,flow}/<tên>.md` thì hỏi user có chạy lại `/explain` không; chưa thì chèn dòng "⚠️ Code đã thay đổi ngày …, bài có thể đã cũ" đầu bài.
 - Khi tạo, đổi tên hoặc xóa skill trong `.claude/skills/`, cập nhật "Available Skills" và "Skill Routing" (skill dự kiến ghi kèm "(chưa có)").

@@ -151,6 +151,7 @@ Tắt server bằng đúng PID của nó, **không** dùng `taskkill /IM node.ex
 ### Bước 7: Cập nhật tài liệu
 - `src/features/<feature>/context.md`: **bỏ dòng "⏳ Chưa cài đặt"**, sửa lại theo code thật (endpoint, file, public API, business rule đã chốt), xóa mục "Câu hỏi còn mở" đã được trả lời.
 - Đổi endpoint, mã lỗi hay bảng so với docs → cập nhật `../01-share-docs/API_SPEC.md` / `../01-share-docs/DATABASE.md` và báo user.
+- Bài giải thích của feature (`docs/explain/code/<feature>.md`, `docs/explain/flow/<feature>.md`) nếu có → hỏi user: chạy lại `/explain code|flow <feature>` (ghi đè), hay để sau. Để sau thì chèn ngay dưới bảng thông tin đầu bài dòng `> ⚠️ Code đã thay đổi ngày <YYYY-MM-DD> (<tóm tắt 1 dòng>), bài có thể đã cũ.` (chỉ sửa dòng này, không viết lại bài).
 - Không thêm chi tiết vào `../CLAUDE.md` (file gốc chỉ để điều hướng).
 
 ## Output

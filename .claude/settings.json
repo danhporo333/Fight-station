@@ -8,6 +8,12 @@
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/check-skills.mjs\" 2>/dev/null || true",
             "timeout": 10,
             "statusMessage": "Kiểm tra skill trong CLAUDE.md..."
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/check-explain.mjs\" 2>/dev/null || true",
+            "timeout": 15,
+            "statusMessage": "Kiểm tra bài giải thích đã cũ..."
           }
         ]
       }

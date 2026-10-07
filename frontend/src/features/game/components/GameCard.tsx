@@ -5,10 +5,19 @@ interface GameCardProps {
   game: Game
 }
 
-/** Thẻ game kiểu prototype: poster 3:4 (trống thì hiện tên game chữ to theo màu nhấn), tên, thể loại, số người */
+/**
+ * Thẻ game kiểu prototype: poster 3:4 (trống thì hiện tên game chữ to theo màu nhấn), tên, thể loại,
+ * số người. Mọi thẻ cao bằng nhau: tên luôn chiếm đúng 2 dòng (dài hơn thì "…"), thể loại 1 dòng;
+ * tên/thể loại đầy đủ hiện khi rê chuột (title).
+ */
 export function GameCard({ game }: GameCardProps) {
+  const categories = game.categories.map((category) => category.name).join(' · ')
+
   return (
-    <article className="group overflow-hidden border border-brand-500/15 bg-card transition duration-300 hover:-translate-y-2 hover:border-brand-500 hover:shadow-[0_10px_40px_rgb(255_106_0/0.25)]">
+    <article
+      title={game.title}
+      className="group flex h-full flex-col overflow-hidden border border-brand-500/15 bg-card transition duration-300 hover:-translate-y-2 hover:border-brand-500 hover:shadow-[0_10px_40px_rgb(255_106_0/0.25)]"
+    >
       <div className="relative flex aspect-[3/4] items-center justify-center overflow-hidden bg-linear-135 from-dark to-card after:absolute after:inset-0 after:bg-linear-to-t after:from-card after:to-transparent after:to-50%">
         {game.posterUrl ? (
           <img
@@ -29,11 +38,14 @@ export function GameCard({ game }: GameCardProps) {
         )}
       </div>
 
-      <div className="p-4">
-        <h3 className="mb-1 font-bold uppercase">{game.title}</h3>
-        <p className="flex items-center justify-between gap-2 font-mono text-xs tracking-wider text-muted">
-          <span className="text-brand-500">
-            {game.categories.map((category) => category.name).join(' · ')}
+      <div className="flex flex-1 flex-col p-4">
+        {/* Luôn đủ chỗ 2 dòng (min-h 2lh) để thẻ tên ngắn cao bằng thẻ tên dài */}
+        <h3 className="mb-1 line-clamp-2 min-h-[2lh] leading-snug font-bold uppercase">
+          {game.title}
+        </h3>
+        <p className="mt-auto flex items-center justify-between gap-2 font-mono text-xs tracking-wider text-muted">
+          <span className="min-w-0 truncate text-brand-500" title={categories}>
+            {categories}
           </span>
           {game.players && <span className="shrink-0 whitespace-nowrap">{game.players}</span>}
         </p>

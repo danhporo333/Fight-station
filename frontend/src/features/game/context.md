@@ -24,7 +24,7 @@ Hiển thị game của quán theo thể loại, lọc theo chi nhánh và tìm 
 | `/admin/games/new`, `/admin/games/:id/edit` | `AdminGameNewPage`, `AdminGameEditPage` (form có ô tick 1–5 thể loại) | Admin | như trên |
 | `/admin/game-categories` | `AdminGameCategoriesPage`: thêm ở đầu trang, sửa ngay trên dòng, xóa | Admin | như trên; menu "Thể loại game" |
 
-Trang chủ (`src/pages/HomePage.tsx`): hero thêm số "Tựa game" (`useGameCount`), nút "Xem game" → `/games`, mục `#games` "Kho game **Khủng bố**" với `GameList` 8 game + nút "Xem tất cả game".
+Trang chủ (`src/pages/HomePage.tsx`): hero thêm số "Tựa game" (`useGameCount`), nút "Xem game" → `/games`, mục `#games` "Kho game **Khủng bố**" với **`GameCarousel`** (dải tối đa 16 game tự trượt sang trái) + nút "Xem tất cả game".
 
 ## File
 | Thư mục | Nội dung |
@@ -33,11 +33,11 @@ Trang chủ (`src/pages/HomePage.tsx`): hero thêm số "Tựa game" (`useGameCo
 | `services/` | `game.service.ts` (`getGames`, `getGame`, `createGame`, `updateGame`, `deleteGame`, `getBranchOptions`, `BRANCH_OPTIONS_PARAMS`), `game-category.service.ts` |
 | `hooks/` | `game.keys.ts`, `useGames`, `useGameCount`, `useGame`, `useCreateGame`, `useUpdateGame`, `useDeleteGame`, `useInvalidateGames`, `useGameCategories`, `useCreateGameCategory`, `useUpdateGameCategory`, `useDeleteGameCategory`, `useBranchOptions` |
 | `utils/` | `accent.ts` (`ACCENT_TEXT_CLASS`, `ACCENT_SWATCH_CLASS`, `ACCENT_OPTIONS`), `game.utils.ts` (`GAME_SEARCH_PARAMS`, `readIdParam`, chuyển form ↔ API cho game và thể loại), `game-form-errors.ts` (`applyGameErrors`) |
-| `components/` | Công khai: `GameCard`, `GameList`, `GameFilters`. Quản trị: `GameForm` (+ `GameCategoriesField`, `AccentColorField`, `GameBranchesField`), `GameTable`, `AdminGameSearch`, `GameCategoryForm`, `GameCategoryRow` |
+| `components/` | Công khai: `GameCard`, `GameList`, `GameCarousel`, `GameFilters`. Quản trị: `GameForm` (+ `GameCategoriesField`, `AccentColorField`, `GameBranchesField`), `GameTable`, `AdminGameSearch`, `GameCategoryForm`, `GameCategoryRow` |
 | `pages/` | `AdminGamesPage`, `AdminGameNewPage`, `AdminGameEditPage`, `AdminGameCategoriesPage` |
 
 ## Public API (`index.ts`)
-- `GameList` (props `query`, `emptyMessage`), `GameFilters`, `useGameCount`, `gameAdminRoutes`, `GAME_SEARCH_PARAMS`, `readIdParam`, type `Game`, `GameListQuery`.
+- `GameCarousel` (prop `limit`), `GameList` (props `query`, `emptyMessage`, `onPageChange`), `GameFilters`, `useGameCount`, `gameAdminRoutes`, `GAME_SEARCH_PARAMS`, `readIdParam`, type `Game`, `GameListQuery`.
 
 ## Query key
 - `['games', query]` (query gộp `limit`), `['game', id, { includeInactive }]`, `['game-categories', query]`.
@@ -48,6 +48,7 @@ Trang chủ (`src/pages/HomePage.tsx`): hero thêm số "Tựa game" (`useGameCo
 - **Chi nhánh**: form có ô "Có ở mọi chi nhánh" (mặc định) → gửi `branchIds: null`; bỏ chọn thì hiện ô tick từng chi nhánh (kể cả chi nhánh đang ẩn, ghi "(đang ẩn)"), phải tick ≥ 1 → gửi mảng. Khớp quy ước backend "không có dòng = mọi chi nhánh".
 - **Phân trang `/games`** (2026-10-07): mỗi trang `GAMES_PER_PAGE` = 8 game (`?page=N`, trang 1 không ghi). `useGames` trả `{ items, meta }`; `GameList` nhận `onPageChange` thì hiện `Pagination` (shared: mũi tên ‹ ›, số trang có "…" khi nhiều trang, ẩn khi chỉ 1 trang). Đổi trang ghi URL **không** `replace` (nút Quay lại về trang trước) và cuộn lên đầu danh sách. Đổi chi nhánh/thể loại/từ khóa thì xóa `?page` (về trang 1). Trang vượt quá số trang → "Không có game nào ở trang này." kèm thanh để quay lại. Trang chủ vẫn 8 game đầu, không phân trang; trang quản trị vẫn `limit: 100`.
 - **Bộ lọc trên URL**: `GameFilters` ghi `?category=<id>` và `?q=` (ô tìm chờ 300ms bằng `useDebounce`, `replace`); `BranchPicker` (branch) ghi `?branch=<id>`. `GamesPage` đọc cả ba (`readIdParam` bỏ giá trị sai) rồi truyền vào `GameList`.
+- **Mọi thẻ game cao bằng nhau** (2026-10-07): tên luôn chiếm đúng 2 dòng (`line-clamp-2` + `min-h-[2lh]`, dài hơn thì "…"), thể loại 1 dòng (`truncate`), dòng thể loại/số người đẩy xuống đáy (`mt-auto`), thẻ `h-full` để giãn theo ô lưới/dải trượt. Tên và thể loại đầy đủ hiện khi rê chuột (`title`).
 - **Thẻ game** theo prototype: poster 3:4 (`posterUrl` trống → tên game chữ to, màu theo `accentColor` qua `ACCENT_TEXT_CLASS`, phát sáng), tên in hoa, thể loại (cam) và số người chơi (mono). Lưới 2 cột → 3 (`sm`) → 4 (`lg`).
 - **Màu nhấn**: 4 ô màu dạng radio (`AccentColorField`), có chữ cho trình đọc màn hình.
 - **Lỗi form**: `GAME_002` → ô `title` ("Tên game đã tồn tại"); `details` (COMMON_001) → đúng ô; còn lại (`GAME_003`, `GAME_006`) → khung lỗi đầu form (`applyGameErrors`). Thể loại: `GAME_004` qua `details`/khung lỗi.
@@ -57,6 +58,7 @@ Trang chủ (`src/pages/HomePage.tsx`): hero thêm số "Tựa game" (`useGameCo
 - Thể loại đang ẩn ghi "Đang ẩn (game chỉ có thể loại này sẽ ẩn theo)" ở trang quản trị thể loại: game chỉ ẩn khi **mọi** thể loại của nó đều ẩn. `shared/components/ui/SelectField.tsx` hiện chưa nơi nào dùng (giữ cho `menu`, `promotion`).
 
 ## Ghi chú UI
+- **`GameCarousel`** (trang chủ, 2026-10-07): danh sách lặp 2 lần trong một hàng `w-max`, chạy `animate-marquee` (keyframes trong `styles/index.css`: `translateX(0 → -50%)`, **60s một vòng**, `linear infinite`) nên nối liền mạch. Khoảng cách giữa thẻ dùng `pr-*` (không dùng `gap`) để 2 bản lặp dài đúng bằng nhau. Rê chuột hoặc focus bên trong thì dừng (`animation-play-state: paused`). Hai mép mờ dần (`mask-image`). Bản lặp thứ 2 `aria-hidden`. `prefers-reduced-motion`: không chạy, cho cuộn ngang. Đang tải, lỗi, hoặc **dưới 6 game** → hiện `GameList` 8 game (lưới) thay vì dải trượt (ít game sẽ hở khoảng trống). Muốn nhanh/chậm hơn: đổi `60s` ở `--animate-marquee`.
 - `GameList` đủ 3 trạng thái: khung xám (tối đa 8), lỗi + "Thử lại", rỗng ("Chưa có game nào." / "Không có game nào khớp bộ lọc." trên `/games` khi đang lọc).
 - `GameFilters`: nút thể loại vuông kiểu prototype (đang chọn nền cam phát sáng), ô tìm có icon kính lúp.
 - Hộp xác nhận xóa chi nhánh (feature `branch`) đã ghi: game chỉ có ở riêng chi nhánh đó sẽ chuyển thành có ở mọi chi nhánh.

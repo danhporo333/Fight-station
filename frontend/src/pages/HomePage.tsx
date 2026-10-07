@@ -2,7 +2,7 @@ import { Play } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { BranchList, useBranchSummary } from '@/features/branch'
-import { GameList, useGameCount } from '@/features/game'
+import { GameCarousel, useGameCount } from '@/features/game'
 import { ShopHero, useShop, type HeroStat } from '@/features/shop'
 import { SectionHeading } from '@/shared/components/ui/SectionHeading'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
@@ -10,8 +10,8 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
 const BUTTON_CLASS =
   'inline-flex items-center gap-2 px-8 py-4 font-display text-sm font-bold tracking-[0.15em] uppercase transition text-center'
 
-/** Game hiện ở trang chủ; xem hết ở /games */
-const HOME_GAME_LIMIT = 8
+/** Số game trong dải trượt ở trang chủ; xem hết ở /games */
+const HOME_GAME_LIMIT = 16
 
 /** Trang chủ: ghép các feature. Sau này thêm PricePlanList, MenuList... */
 export function HomePage() {
@@ -58,7 +58,7 @@ export function HomePage() {
         <SectionHeading tag="Game Library" title="Kho game" accent="Khủng bố">
           Các tựa game đang có tại quán.
         </SectionHeading>
-        <GameList query={{ limit: HOME_GAME_LIMIT }} />
+        <GameCarousel limit={HOME_GAME_LIMIT} />
         <div className="mt-10 flex justify-center">
           <Link
             to="/games"

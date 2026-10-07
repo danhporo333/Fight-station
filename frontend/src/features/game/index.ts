@@ -1,4 +1,5 @@
 // Public API của feature game
+export { GameCarousel } from './components/GameCarousel'
 export { GameFilters } from './components/GameFilters'
 export { GameList } from './components/GameList'
 export { useGameCount } from './hooks/useGameCount'

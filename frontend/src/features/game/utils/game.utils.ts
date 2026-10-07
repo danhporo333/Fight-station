@@ -6,8 +6,11 @@ import type {
   GamePayload,
 } from '../types/game.types'
 
-/** Tham số URL của bộ lọc game (GameFilters ghi, trang ghép đọc) */
-export const GAME_SEARCH_PARAMS = { category: 'category', q: 'q' } as const
+/** Tham số URL của bộ lọc và trang (GameFilters / thanh chuyển trang ghi, trang ghép đọc) */
+export const GAME_SEARCH_PARAMS = { category: 'category', q: 'q', page: 'page' } as const
+
+/** Số game mỗi trang ở /games (trang chủ cũng hiện đúng số này) */
+export const GAMES_PER_PAGE = 8
 
 /** Đọc số nguyên dương từ tham số URL; sai hoặc trống → undefined */
 export function readIdParam(value: string | null): number | undefined {

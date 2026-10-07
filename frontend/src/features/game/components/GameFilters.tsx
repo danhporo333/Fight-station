@@ -28,6 +28,8 @@ export function GameFilters() {
       (params) => {
         if (value) params.set(name, value)
         else params.delete(name)
+        // Đổi bộ lọc thì về trang 1
+        params.delete(GAME_SEARCH_PARAMS.page)
         return params
       },
       { replace: true },

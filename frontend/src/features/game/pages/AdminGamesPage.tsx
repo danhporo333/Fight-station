@@ -17,7 +17,8 @@ import { GAME_SEARCH_PARAMS } from '../utils/game.utils'
 export function AdminGamesPage() {
   useDocumentTitle('Quản lý game')
   const q = useSearchParams()[0].get(GAME_SEARCH_PARAMS.q)?.trim() || undefined
-  const { data: games, isPending, error, refetch } = useGames({ includeInactive: true, q })
+  const { data, isPending, error, refetch } = useGames({ includeInactive: true, q })
+  const games = data?.items
   const deleteGame = useDeleteGame()
   const [toDelete, setToDelete] = useState<Game | null>(null)
 

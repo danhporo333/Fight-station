@@ -19,7 +19,7 @@ Hiển thị game của quán theo thể loại, lọc theo chi nhánh và tìm 
 ## Route và trang
 | Path | Trang | Quyền | Khai báo |
 |---|---|---|---|
-| `/games` | `src/pages/GamesPage.tsx` (lazy; ghép `branch` + `game`) | Công khai | route trong `app/routes.tsx`; link "Game" trong `PUBLIC_NAV` |
+| `/games` | `src/pages/GamesPage.tsx` (lazy; ghép `branch` + `game`; **8 game/trang**, thanh chuyển trang `?page=`) | Công khai | route trong `app/routes.tsx`; link "Game" trong `PUBLIC_NAV` |
 | `/admin/games` | `AdminGamesPage`: ô tìm theo tên (`?q=` trên URL), bảng (kể cả đang ẩn), Thêm/Sửa/Xóa | Admin | `gameAdminRoutes` trong nhánh `admin`; menu "Game" ở `AdminRoot.tsx` |
 | `/admin/games/new`, `/admin/games/:id/edit` | `AdminGameNewPage`, `AdminGameEditPage` (form có ô tick 1–5 thể loại) | Admin | như trên |
 | `/admin/game-categories` | `AdminGameCategoriesPage`: thêm ở đầu trang, sửa ngay trên dòng, xóa | Admin | như trên; menu "Thể loại game" |
@@ -46,7 +46,8 @@ Trang chủ (`src/pages/HomePage.tsx`): hero thêm số "Tựa game" (`useGameCo
 ## Quyết định đã chốt
 - **Nhiều thể loại** (2026-10-07): `Game.categories` là mảng (xếp theo `sortOrder` thể loại); form dùng ô tick (`GameCategoriesField`), chọn 1–5, liệt kê cả thể loại đang ẩn (ghi "đang ẩn"); gửi `gameCategoryIds: number[]`. Thẻ game ghi `Hành Động · Co-op`, bảng quản trị ghi `Hành Động, Co-op`. `GAME_003` (thể loại vừa bị xóa) → lỗi ngay ở ô thể loại.
 - **Chi nhánh**: form có ô "Có ở mọi chi nhánh" (mặc định) → gửi `branchIds: null`; bỏ chọn thì hiện ô tick từng chi nhánh (kể cả chi nhánh đang ẩn, ghi "(đang ẩn)"), phải tick ≥ 1 → gửi mảng. Khớp quy ước backend "không có dòng = mọi chi nhánh".
-- **Bộ lọc trên URL**: `GameFilters` ghi `?category=<id>` và `?q=` (ô tìm chờ 300ms bằng `useDebounce`, `replace`); `BranchPicker` (branch) ghi `?branch=<id>`. `GamesPage` đọc cả ba (`readIdParam` bỏ giá trị sai) rồi truyền vào `GameList`. Không phân trang (`limit: 100`).
+- **Phân trang `/games`** (2026-10-07): mỗi trang `GAMES_PER_PAGE` = 8 game (`?page=N`, trang 1 không ghi). `useGames` trả `{ items, meta }`; `GameList` nhận `onPageChange` thì hiện `Pagination` (shared: mũi tên ‹ ›, số trang có "…" khi nhiều trang, ẩn khi chỉ 1 trang). Đổi trang ghi URL **không** `replace` (nút Quay lại về trang trước) và cuộn lên đầu danh sách. Đổi chi nhánh/thể loại/từ khóa thì xóa `?page` (về trang 1). Trang vượt quá số trang → "Không có game nào ở trang này." kèm thanh để quay lại. Trang chủ vẫn 8 game đầu, không phân trang; trang quản trị vẫn `limit: 100`.
+- **Bộ lọc trên URL**: `GameFilters` ghi `?category=<id>` và `?q=` (ô tìm chờ 300ms bằng `useDebounce`, `replace`); `BranchPicker` (branch) ghi `?branch=<id>`. `GamesPage` đọc cả ba (`readIdParam` bỏ giá trị sai) rồi truyền vào `GameList`.
 - **Thẻ game** theo prototype: poster 3:4 (`posterUrl` trống → tên game chữ to, màu theo `accentColor` qua `ACCENT_TEXT_CLASS`, phát sáng), tên in hoa, thể loại (cam) và số người chơi (mono). Lưới 2 cột → 3 (`sm`) → 4 (`lg`).
 - **Màu nhấn**: 4 ô màu dạng radio (`AccentColorField`), có chữ cho trình đọc màn hình.
 - **Lỗi form**: `GAME_002` → ô `title` ("Tên game đã tồn tại"); `details` (COMMON_001) → đúng ô; còn lại (`GAME_003`, `GAME_006`) → khung lỗi đầu form (`applyGameErrors`). Thể loại: `GAME_004` qua `details`/khung lỗi.

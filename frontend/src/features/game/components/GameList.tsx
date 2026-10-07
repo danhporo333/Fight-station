@@ -1,4 +1,5 @@
 import { Button } from '@/shared/components/ui/Button'
+import { Pagination } from '@/shared/components/ui/Pagination'
 import { getErrorMessage } from '@/shared/utils/error-messages'
 
 import { useGames } from '../hooks/useGames'
@@ -8,15 +9,21 @@ import { GameCard } from './GameCard'
 const GRID_CLASS = 'grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-6'
 
 export interface GameListProps {
-  /** Bộ lọc (trang ghép đọc từ URL rồi truyền vào) */
+  /** Bộ lọc và trang (trang ghép đọc từ URL rồi truyền vào) */
   query?: GameListQuery
   /** Dòng hiện khi không có game nào khớp bộ lọc */
   emptyMessage?: string
+  /** Có truyền thì hiện thanh chuyển trang dưới lưới (khi nhiều hơn 1 trang) */
+  onPageChange?: (page: number) => void
 }
 
-/** Lưới game đang hiện, đủ 3 trạng thái: đang tải, lỗi, rỗng */
-export function GameList({ query = {}, emptyMessage = 'Chưa có game nào.' }: GameListProps) {
-  const { data: games, isPending, error, refetch } = useGames(query)
+/** Lưới game đang hiện, đủ 3 trạng thái: đang tải, lỗi, rỗng; có thể kèm thanh chuyển trang */
+export function GameList({
+  query = {},
+  emptyMessage = 'Chưa có game nào.',
+  onPageChange,
+}: GameListProps) {
+  const { data, isPending, error, refetch } = useGames(query)
 
   if (isPending) {
     return (
@@ -44,13 +51,29 @@ export function GameList({ query = {}, emptyMessage = 'Chưa có game nào.' }: 
     )
   }
 
-  if (games.length === 0) return <p className="text-center text-muted">{emptyMessage}</p>
+  const { items, meta } = data
+  const pagination = onPageChange && meta && (
+    <Pagination page={meta.page} totalPages={meta.totalPages} onChange={onPageChange} />
+  )
+
+  if (items.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-6">
+        <p className="text-center text-muted">{emptyMessage}</p>
+        {/* Lỡ mở trang vượt quá số trang (vd ?page=99): vẫn hiện thanh để quay lại */}
+        {meta && meta.page > 1 && pagination}
+      </div>
+    )
+  }
 
   return (
-    <div className={GRID_CLASS}>
-      {games.map((game) => (
-        <GameCard key={game.id} game={game} />
-      ))}
+    <div className="flex flex-col gap-10">
+      <div className={GRID_CLASS}>
+        {items.map((game) => (
+          <GameCard key={game.id} game={game} />
+        ))}
+      </div>
+      {pagination}
     </div>
   )
 }

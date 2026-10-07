@@ -35,7 +35,7 @@ export function GameCard({ game }: GameCardProps) {
           <span className="text-brand-500">
             {game.categories.map((category) => category.name).join(' · ')}
           </span>
-          {game.players && <span>{game.players}</span>}
+          {game.players && <span className="shrink-0 whitespace-nowrap">{game.players}</span>}
         </p>
       </div>
     </article>

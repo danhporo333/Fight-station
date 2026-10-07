@@ -152,7 +152,7 @@ erDiagram
 ## 4. Quy ước
 | Chủ đề | Quy ước |
 |---|---|
-| Khóa chính | `INT UNSIGNED AUTO_INCREMENT` (Prisma: `Int @id @default(autoincrement()) @db.UnsignedInt`). Dữ liệu công khai, một database duy nhất nên không cần UUID |
+| Khóa chính | `INT UNSIGNED AUTO_INCREMENT` (Prisma: `Int @id @default(autoincrement()) @db.UnsignedInt`). Dữ liệu công khai, một database duy nhất nên không cần UUID. Ngoại lệ: `shop.id` là `INT UNSIGNED DEFAULT 1` (không AUTO_INCREMENT) vì MySQL không cho CHECK trên cột AUTO_INCREMENT |
 | Soft delete | Không dùng `deleted_at`. Muốn ẩn tạm thì đặt `is_active = 0`; xóa là xóa thật sau khi chủ quán xác nhận |
 | Timestamp | `created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3)`; `updated_at DATETIME(3)` do Prisma `@updatedAt` cập nhật. Lưu UTC, đổi sang giờ Việt Nam ở giao diện |
 | Enum / Status | Tập nhỏ, cố định (`accent_color`, `role`) dùng Prisma `enum` (MySQL ENUM), giá trị chữ thường snake_case. Bật/tắt dùng cột bool tiền tố `is_` (`is_active`, `is_available`, `is_hot`, `is_featured`), không dùng mã số |

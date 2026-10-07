@@ -5,8 +5,8 @@
 | **Phía** | FE (frontend) |
 | **Chế độ** | `code` |
 | **Target** | `auth` |
-| **Ngày viết** | 2026-10-07 |
-| **Tài liệu đã đọc** | `frontend/src/features/auth/context.md` (trạng thái ✅ Đã cài đặt 2026-10-06), `frontend/docs/FE-ARCHITECTURE.md` |
+| **Ngày viết** | 2026-10-07 (viết lại sau khi `FormAlert` chuyển sang `shared/` và có trang owner đầu tiên `/admin/shop`) |
+| **Tài liệu đã đọc** | `frontend/src/features/auth/context.md` (trạng thái ✅ Đã cài đặt 2026-10-06), `frontend/src/features/shop/context.md` (phần dùng `RequireRole`), `frontend/docs/FE-ARCHITECTURE.md` |
 
 > Bài viết dựa trên tài liệu tại ngày viết. Nếu code `auth` thay đổi sau đó, đối chiếu lại với `context.md`.
 
@@ -27,6 +27,8 @@ Ví dụ đời thường: frontend giống **người gác cổng có danh sác
 | `/admin/login` | `AdminLoginPage` | Ai cũng vào được; đã đăng nhập thì tự chuyển vào trong |
 | `/admin` | chuyển tạm sang `/admin/account` (chưa có trang tổng quan) | Admin |
 | `/admin/account` | `AdminAccountPage` | Admin (chủ quán hoặc nhân viên) |
+
+Trang của feature khác cũng dùng "người gác cổng" của `auth`. Ví dụ `/admin/shop` (sửa thông tin quán, feature `shop`) nằm trong nhóm route chỉ chủ quán, nên nhân viên mở link đó sẽ thấy "Không đủ quyền".
 
 ### Cấu trúc thư mục và luồng gọi
 
@@ -130,6 +132,8 @@ Hai "người gác cổng" của trang quản trị.
 ### Phân tích
 - **`RequireAuth`**: không có token → chuyển sang `/admin/login?next=<trang đang mở>`. Đăng nhập xong sẽ quay lại đúng trang đó.
 - **`RequireRole role="owner"`**: người đang đăng nhập không phải chủ quán → hiện trang "403 Không đủ quyền" kèm link quay về. Không truyền `children` thì nó hiển thị các trang con bên trong (`<Outlet />`), nên dùng được làm "vỏ" cho cả nhóm route chỉ dành cho chủ quán.
+  - Ví dụ thật trong `src/app/routes.tsx`: nhóm `<RequireRole role="owner" />` chứa `...shopOwnerRoutes` (trang `/admin/shop`). Sau này `branch` và `price-plan` cũng thêm route vào nhóm này.
+  - Menu bên trái cũng ẩn mục chỉ dành cho chủ quán: trong `ADMIN_NAV`, mục "Thông tin quán" có `ownerOnly: true`, và `AdminRoot` dùng `useHasRole('owner')` để quyết định có hiện mục đó không.
 
 ### 💡 Điểm cần nhớ
 - Hai component này **chỉ che giao diện**. Quyền thật do backend kiểm tra: nhân viên có gọi thẳng API của chủ quán thì vẫn nhận `403 AUTH_005`.
@@ -137,10 +141,12 @@ Hai "người gác cổng" của trang quản trị.
 
 ---
 
-## 📁 File: `components/LoginForm.tsx`, `ChangePasswordForm.tsx`, `FormAlert.tsx`
+## 📁 File: `components/LoginForm.tsx`, `ChangePasswordForm.tsx`
 
 ### Mục đích
 Hai form của feature, viết bằng **React Hook Form** (thư viện quản lý form) với luật Zod ở trên.
+
+> `FormAlert` (khung lỗi chung của form) **không còn nằm trong `auth`**. Nó đã được chuyển sang `shared/components/ui/FormAlert.tsx`, vì form của feature `shop` cũng dùng. Quy tắc dự án: thứ gì từ **2 feature** trở lên dùng thì chuyển vào `shared/`.
 
 ### Vị trí trong dự án
 - Feature: `auth`
@@ -153,7 +159,7 @@ Hai form của feature, viết bằng **React Hook Form** (thư viện quản l�
 | Loại lỗi | Hiện ở đâu | Ví dụ |
 |---|---|---|
 | Lỗi của **một ô** | Ngay dưới ô đó, viền ô chuyển đỏ | "Nhập mật khẩu", "Mật khẩu hiện tại không đúng" |
-| Lỗi **chung** của form | Khung đỏ `FormAlert` ở đầu form | "Tên đăng nhập hoặc mật khẩu không đúng", "Tài khoản đã bị khóa" |
+| Lỗi **chung** của form | Khung đỏ `FormAlert` (từ `@/shared/components/ui/FormAlert`) ở đầu form | "Tên đăng nhập hoặc mật khẩu không đúng", "Tài khoản đã bị khóa" |
 
 Hàm dùng chung `applyServerErrors` (ở `shared/utils/form-errors.ts`) quyết định chỗ hiện lỗi. Nếu API trả `details` chỉ ra ô nào sai thì gán vào đúng ô đó; còn lại thì hiện ở khung lỗi chung. Thông báo lấy từ `ERROR_MESSAGES` theo **mã lỗi** (`AUTH_001`, `AUTH_004`...), không phụ thuộc chữ server trả về.
 
@@ -205,8 +211,9 @@ Hàm thuần, không gọi API, không hiển thị gì.
 | `shared/stores/auth.store.ts` | **Nơi lưu phiên**: `accessToken` và `admin`, lưu trong localStorage (key `fs-auth`), nên tải lại trang vẫn đăng nhập. Nằm ở `shared/` vì `http.ts` cần đọc token, mà `shared/` không được import `features/` |
 | `shared/services/api/http.ts` | Gắn `Authorization: Bearer <token>` vào mọi request; gặp `AUTH_002/003` thì phát sự kiện `auth:expired` |
 | `app/providers.tsx` | Nghe `auth:expired` → xóa phiên, xóa cache, báo "Phiên đăng nhập đã hết hạn", về `/admin/login?next=...` |
-| `app/AdminRoot.tsx` | Gốc nhánh `/admin`: `RequireAuth` bọc `AdminLayout`, truyền menu `ADMIN_NAV` và `AdminUserMenu` |
+| `app/AdminRoot.tsx` | Gốc nhánh `/admin`: `RequireAuth` bọc `AdminLayout`, truyền menu `ADMIN_NAV` (mục `ownerOnly` chỉ hiện với chủ quán) và `AdminUserMenu` |
 | `shared/components/ui/Button.tsx`, `TextField.tsx` | Nút có trạng thái đang xử lý; ô nhập có nhãn và dòng lỗi |
+| `shared/components/ui/FormAlert.tsx` | Khung lỗi chung của form; dùng ở `LoginForm`, `ChangePasswordForm` và `ShopForm` |
 | `shared/utils/error-messages.ts`, `form-errors.ts` | Thông báo theo mã lỗi; gán lỗi API vào ô của form |
 
 ### Phiên hết hạn hoạt động thế nào?
@@ -216,7 +223,7 @@ Token sống 1 ngày. Khi hết hạn, `RequireAuth` vẫn thấy "có token" v�
 
 ## 🔗 Liên kết
 
-- **Được dùng bởi:** `src/app/routes.tsx` (gắn route, nhóm owner bọc `RequireRole`), `src/app/AdminRoot.tsx`.
+- **Được dùng bởi:** `src/app/routes.tsx` (gắn route, nhóm owner bọc `RequireRole` chứa `/admin/shop`), `src/app/AdminRoot.tsx`.
 - **Gọi tới:** `shared/services/api/http.ts` → backend `/api/v1/auth/*`.
 - **Tài liệu:** `frontend/src/features/auth/context.md`; `FE-ARCHITECTURE.md` mục 3 (giải phẫu feature), mục 5 (giao tiếp giữa feature), mục 6 (routing), mục 7 (state), mục 8 (tầng API); `API_SPEC.md` mục 2, 7.1 và 7.1b.
 

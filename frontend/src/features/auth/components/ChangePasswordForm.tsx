@@ -8,7 +8,7 @@ import { applyServerErrors } from '@/shared/utils/form-errors'
 
 import { useChangePassword } from '../hooks/useChangePassword'
 import { changePasswordSchema, type ChangePasswordInput } from '../types/auth.schema'
-import { FormAlert } from './FormAlert'
+import { FormAlert } from '@/shared/components/ui/FormAlert'
 
 const EMPTY: ChangePasswordInput = { currentPassword: '', newPassword: '', confirmPassword: '' }
 

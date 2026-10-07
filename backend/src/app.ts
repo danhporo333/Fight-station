@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import { config } from '@/config';
 import { prisma, type Database } from '@/core/database/prisma';
 import { AuthController, AuthRepository, AuthService, createAuthRouter } from '@/features/auth';
+import { createShopRouter, ShopController, ShopRepository, ShopService } from '@/features/shop';
 import {
   apiRateLimit,
   createAuthGuards,
@@ -24,6 +25,8 @@ export function createApp(db: Database = prisma): Express {
   const guards = createAuthGuards(authService);
   const authController = new AuthController(authService);
 
+  const shopController = new ShopController(new ShopService(new ShopRepository(db)));
+
   const app = express();
   app.disable('x-powered-by');
 
@@ -40,6 +43,7 @@ export function createApp(db: Database = prisma): Express {
   // Route feature gắn dưới /api/v1; feature cần quyền nhận `guards` qua router factory
   const v1 = express.Router();
   v1.use('/auth', createAuthRouter(authController, guards));
+  v1.use('/shop', createShopRouter(shopController, guards));
   app.use(config.api.prefix, apiRateLimit, v1);
 
   app.use(notFound);

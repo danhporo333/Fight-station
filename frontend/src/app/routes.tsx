@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router'
 
 import { authAdminRoutes, authPublicRoutes, RequireRole } from '@/features/auth'
+import { ShopFooter, shopOwnerRoutes } from '@/features/shop'
 import { HomePage } from '@/pages/HomePage'
 import { ErrorFallback } from '@/shared/components/ErrorBoundary'
 import { PublicLayout } from '@/shared/components/layout/PublicLayout'
@@ -9,7 +10,7 @@ import { NotFoundPage } from '@/shared/components/NotFoundPage'
 // Chỉ ghép route. Mỗi feature tự khai báo RouteObject[] trong features/[x]/routes.tsx rồi thêm vào đây.
 export const router = createBrowserRouter([
   {
-    element: <PublicLayout />,
+    element: <PublicLayout footer={<ShopFooter />} />,
     errorElement: <ErrorFallback />,
     children: [
       { index: true, element: <HomePage /> },
@@ -32,7 +33,8 @@ export const router = createBrowserRouter([
         // Trang chỉ owner: staff vào sẽ thấy "Không đủ quyền"
         element: <RequireRole role="owner" />,
         children: [
-          // ...branchOwnerRoutes, pricePlanOwnerRoutes, shopOwnerRoutes
+          ...shopOwnerRoutes,
+          // ...branchOwnerRoutes, pricePlanOwnerRoutes
         ],
       },
     ],

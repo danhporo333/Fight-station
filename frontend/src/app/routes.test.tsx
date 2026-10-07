@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { describe, expect, it } from 'vitest'
@@ -19,7 +20,13 @@ function renderAt(path: string) {
     ],
     { initialEntries: [path] },
   )
-  return render(<RouterProvider router={router} />)
+  // HomePage → ShopHero dùng React Query; không thử lại để test không chờ API thật
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  )
 }
 
 describe('routes', () => {

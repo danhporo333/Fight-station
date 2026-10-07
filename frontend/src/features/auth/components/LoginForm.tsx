@@ -7,7 +7,7 @@ import { applyServerErrors } from '@/shared/utils/form-errors'
 
 import { useLogin } from '../hooks/useLogin'
 import { loginSchema, type LoginInput } from '../types/auth.schema'
-import { FormAlert } from './FormAlert'
+import { FormAlert } from '@/shared/components/ui/FormAlert'
 
 export interface LoginFormProps {
   /** Gọi sau khi đăng nhập thành công (phiên đã lưu vào auth.store) */

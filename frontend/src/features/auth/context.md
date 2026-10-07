@@ -34,7 +34,7 @@ Nhánh `/admin` ghép ở `src/app/AdminRoot.tsx` (lazy): `RequireAuth` → `Adm
 | `types/` | `auth.types.ts` (`LoginResult`, `CurrentAdmin`), `auth.schema.ts` (`loginSchema`, `changePasswordSchema`: khớp `auth.dto.ts` backend, thêm `confirmPassword` chỉ ở giao diện) |
 | `services/auth.service.ts` | `login`, `getCurrentAdmin`, `changePassword` |
 | `hooks/` | `useLogin`, `useCurrentAdmin`, `useChangePassword`, `useLogout`, `useHasRole`, `auth.keys.ts` |
-| `components/` | `LoginForm`, `ChangePasswordForm`, `AccountInfo`, `FormAlert`, `RequireAuth`, `RequireRole`, `AdminUserMenu` |
+| `components/` | `LoginForm`, `ChangePasswordForm`, `AccountInfo`, `RequireAuth`, `RequireRole`, `AdminUserMenu` |
 | `utils/auth.utils.ts` | `getSafeNextPath`, `ROLE_LABEL` |
 | `pages/` | `AdminLoginPage`, `AdminAccountPage` |
 
@@ -45,7 +45,7 @@ Nhánh `/admin` ghép ở `src/app/AdminRoot.tsx` (lazy): `RequireAuth` → `Adm
 
 ## Quyết định đã chốt
 - `?next=` chỉ nhận đường dẫn nội bộ bắt đầu bằng một `/` (chặn `//evil.com`, `/\evil.com`, URL tuyệt đối); trỏ về `/admin/login` thì đổi thành `/admin`.
-- Lỗi form: `details` từ API gán vào ô (`applyServerErrors`); lỗi khác (sai mật khẩu `AUTH_001`, khóa `AUTH_004`, `429`) hiện ở `FormAlert` đầu form, thông báo lấy từ `ERROR_MESSAGES`.
+- Lỗi form: `details` từ API gán vào ô (`applyServerErrors`); lỗi khác (sai mật khẩu `AUTH_001`, khóa `AUTH_004`, `429`) hiện ở `FormAlert` (`@/shared/components/ui/FormAlert`) đầu form, thông báo lấy từ `ERROR_MESSAGES`.
 - `RequireRole` dùng role lưu lúc đăng nhập (nhanh); quyền thật do API kiểm tra (`AUTH_005`).
 
 ## Chưa làm

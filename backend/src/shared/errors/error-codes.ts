@@ -13,6 +13,9 @@ export const ErrorCode = {
   AUTH_TOKEN_EXPIRED: 'AUTH_003',
   AUTH_ACCOUNT_LOCKED: 'AUTH_004',
   AUTH_FORBIDDEN: 'AUTH_005',
+
+  // shop
+  SHOP_NOT_FOUND: 'SHOP_001',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];

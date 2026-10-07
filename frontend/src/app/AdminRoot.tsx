@@ -2,7 +2,10 @@ import { AdminUserMenu, RequireAuth, useHasRole } from '@/features/auth'
 import { AdminLayout, type AdminNavItem } from '@/shared/components/layout/AdminLayout'
 
 // Menu quản trị: mỗi feature có trang admin thì thêm một dòng (ownerOnly cho trang chỉ owner vào)
-const ADMIN_NAV: AdminNavItem[] = [{ to: '/admin/account', label: 'Tài khoản' }]
+const ADMIN_NAV: AdminNavItem[] = [
+  { to: '/admin/shop', label: 'Thông tin quán', ownerOnly: true },
+  { to: '/admin/account', label: 'Tài khoản' },
+]
 
 /** Gốc nhánh /admin: chặn khi chưa đăng nhập, ghép layout với menu và khu tài khoản của feature auth */
 export function AdminRoot() {

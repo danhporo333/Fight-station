@@ -131,7 +131,7 @@ Route quản trị dùng path tương đối (nằm dưới `admin`). Route ch�
 - `src/app/routes.tsx`: route công khai vào `children` của `PublicLayout` (trước route `*`); route quản trị vào nhánh `admin` (bọc `RequireAuth`), route owner bọc thêm `RequireRole role="owner"`. Chỉ import từ `@/features/<feature>`.
 - Trang ghép nhiều feature (vd `src/pages/GamesPage.tsx`): ghép bằng props/URL param, không import chéo feature.
 - Trang quản trị mới: thêm một dòng vào `ADMIN_NAV` trong `src/app/AdminRoot.tsx` (`ownerOnly: true` cho trang chỉ owner). Trang quản trị đặt tên `Admin<Tên>Page` và **tải lazy**; **không** thêm chunk vào `manualChunks` (Rolldown sẽ kéo code dùng chung vào, trang công khai phải tải theo).
-- Quyền và form dùng sẵn (feature `auth` đã xong, chi tiết trong `src/features/auth/context.md`): `RequireRole`, `useHasRole` từ `@/features/auth`; `Button`, `TextField` từ `@/shared/components/ui/`; `applyServerErrors(error, setError, fields)` từ `@/shared/utils/form-errors`; `getErrorMessage`, `ERROR_MESSAGES` từ `@/shared/utils/error-messages` (thêm mã lỗi của feature vào đây).
+- Quyền và form dùng sẵn (feature `auth` đã xong, chi tiết trong `src/features/auth/context.md`): `RequireRole`, `useHasRole` từ `@/features/auth`; `Button`, `TextField`, `TextAreaField`, `FormAlert` (lỗi chung của form) từ `@/shared/components/ui/`; `applyServerErrors(error, setError, fields)` từ `@/shared/utils/form-errors`; `getErrorMessage`, `ERROR_MESSAGES` từ `@/shared/utils/error-messages` (thêm mã lỗi của feature vào đây).
 - Link điều hướng trong `PublicLayout`/`AdminLayout` (shared): truyền danh sách link từ `app/routes.tsx` qua props, **không** import feature vào shared.
 
 ### Bước 5: Kiểm tra

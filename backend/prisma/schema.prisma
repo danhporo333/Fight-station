@@ -31,3 +31,25 @@ model AdminUser {
 
   @@map("admin_user")
 }
+
+// ─── shop ───────────────────────────────────────────────────────────────
+
+// Chỉ có dòng id = 1 (CHECK (id = 1) thêm tay trong migration).
+// Không auto-increment vì MySQL không cho CHECK trên cột AUTO_INCREMENT.
+model Shop {
+  id           Int      @id @default(1) @db.UnsignedInt
+  name         String   @db.VarChar(100)
+  tagline      String?  @db.VarChar(500)
+  hoursLabel   String?  @map("hours_label") @db.VarChar(50)
+  hotline      String?  @db.VarChar(20)
+  email        String?  @db.VarChar(255)
+  facebookUrl  String?  @map("facebook_url") @db.VarChar(500)
+  zaloUrl      String?  @map("zalo_url") @db.VarChar(500)
+  tiktokUrl    String?  @map("tiktok_url") @db.VarChar(500)
+  instagramUrl String?  @map("instagram_url") @db.VarChar(500)
+  youtubeUrl   String?  @map("youtube_url") @db.VarChar(500)
+  createdAt    DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.DateTime(3)
+
+  @@map("shop")
+}

@@ -4,7 +4,7 @@ Website cho quán chơi game **PS5**: khách xem thông tin quán, danh sách ga
 
 Giao diện tông **cam**, hiện đại, dùng tốt trên điện thoại.
 
-> **Trạng thái:** đang phát triển. Đã xong khung dự án và tính năng **đăng nhập quản trị** (backend + frontend). Các tính năng nội dung đang được làm lần lượt (xem [Lộ trình](#lộ-trình)).
+> **Trạng thái:** đang phát triển. Đã xong khung dự án và tính năng **đăng nhập quản trị** và **thông tin quán** (backend + frontend). Các tính năng nội dung đang được làm lần lượt (xem [Lộ trình](#lộ-trình)).
 
 ---
 
@@ -13,7 +13,7 @@ Giao diện tông **cam**, hiện đại, dùng tốt trên điện thoại.
 | Tính năng | Khách xem | Quản trị | Trạng thái |
 |---|---|---|---|
 | Đăng nhập, phân quyền chủ quán / nhân viên, đổi mật khẩu | — | ✔ | ✅ Xong |
-| Thông tin quán: giờ mở cửa, hotline, mạng xã hội | ✔ | Chủ quán sửa | ⏳ Chưa làm |
+| Thông tin quán: giờ mở cửa, hotline, mạng xã hội | ✔ | Chủ quán sửa | ✅ Xong |
 | Chi nhánh: địa chỉ, bản đồ, số máy PS5, phòng VIP | ✔ | Chủ quán sửa | ⏳ Chưa làm |
 | Game: lọc theo thể loại, chi nhánh, tìm theo tên | ✔ | ✔ | ⏳ Chưa làm |
 | Bảng giá giờ chơi theo gói | ✔ | Chủ quán sửa | ⏳ Chưa làm |
@@ -183,7 +183,7 @@ Dự án dùng [Claude Code](https://claude.com/claude-code) để hỗ trợ ph
 
 - [x] Khung dự án backend và frontend
 - [x] Đăng nhập, phân quyền, đổi mật khẩu
-- [ ] Thông tin quán (`shop`)
+- [x] Thông tin quán (`shop`)
 - [ ] Chi nhánh (`branch`)
 - [ ] Game và thể loại (`game`)
 - [ ] Bảng giá (`price-plan`)

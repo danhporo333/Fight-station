@@ -1,31 +1,49 @@
 # Feature: shop (frontend)
 
-> ⏳ **Chưa cài đặt.** Tạo lúc init (2026-10-06) từ `API_SPEC.md` và `FE-ARCHITECTURE.md`. Khi làm feature, cập nhật file này theo code thật.
+> ✅ **Đã cài đặt** (2026-10-07).
 
 ## Mục đích
-Hiển thị thông tin quán (tên, tagline, giờ mở cửa, hotline, link Facebook/Zalo/TikTok...) ở trang chủ, phần liên hệ và footer. Owner sửa thông tin này trong trang quản trị.
+Hiển thị thông tin quán (tên, tagline, giờ mở cửa, hotline, email, link mạng xã hội) ở hero trang chủ và footer mọi trang công khai. Owner sửa thông tin này trong trang quản trị.
 
 ## Endpoint dùng
 | Method | Path | Dùng ở |
 |---|---|---|
-| GET | `/shop` | Footer, phần liên hệ, hero trang chủ |
-| PUT | `/shop` | Form sửa thông tin quán (Owner) |
+| GET | `/shop` | `ShopFooter`, `ShopHero`, `AdminShopPage` (dùng chung một cache) |
+| PUT | `/shop` | `ShopForm` (Owner) |
 
 ## Route và trang
-| Path | Trang | Quyền |
-|---|---|---|
-| `/admin/shop` | `AdminShopPage` | Owner |
+| Path | Trang | Quyền | Khai báo |
+|---|---|---|---|
+| `/admin/shop` | `AdminShopPage` (lazy) | Owner | `shopOwnerRoutes`, gắn trong nhóm `RequireRole owner` của `app/routes.tsx`; menu "Thông tin quán" (`ownerOnly`) trong `app/AdminRoot.tsx` |
 
-Phần công khai không có trang riêng; component được ghép vào layout hoặc `HomePage`.
+Phần công khai không có trang riêng:
+- `ShopFooter`: `app/routes.tsx` truyền vào `PublicLayout` qua prop `footer` (shared không import features).
+- `ShopHero`: `src/pages/HomePage.tsx` dùng.
 
-## Public API (dự kiến)
-- `ShopContact` (hotline, link mạng xã hội), `ShopHours`, `useShop`, `shopRoutes`.
+## File
+| Thư mục | Nội dung |
+|---|---|
+| `types/` | `shop.types.ts` (`Shop`, `UpdateShopPayload`, `ShopSocialKey`), `shop.schema.ts` (`shopFormSchema`, `SHOP_FORM_FIELDS`) |
+| `services/` | `getShop`, `updateShop` |
+| `hooks/` | `shop.keys.ts`, `useShop`, `useUpdateShop` |
+| `utils/` | `getSocialLinks`, `socialLabel`, `SOCIAL_KEYS`, `toShopFormValues`, `toShopPayload`, `telHref` |
+| `components/` | `ShopFooter`, `ShopHero`, `ShopSocialLinks`, `ShopForm` |
+| `pages/` | `AdminShopPage` |
+
+## Public API (`index.ts`)
+- `ShopFooter`, `ShopHero`, `shopOwnerRoutes`, type `Shop`.
 
 ## Query key
-- `['shop']`. Sau khi `PUT /shop` thành công thì `invalidateQueries({ queryKey: ['shop'] })`.
+- `['shop']` (`shopKeys.all`). `useUpdateShop` thành công → `invalidateQueries({ queryKey: ['shop'] })`, footer và hero tự cập nhật.
+
+## Quyết định đã chốt
+- Form gửi đủ 10 trường mỗi lần lưu; ô trống → `null` (`toShopPayload`). Nút "Lưu thay đổi" và "Hoàn tác" khóa khi form chưa đổi.
+- Schema form khớp `shop.dto.ts` backend: `name` bắt buộc ≤ 100; độ dài theo cột; email và URL kiểm tra khi ô không trống. Lỗi `details` của API gán vào đúng ô (`applyServerErrors` + `SHOP_FORM_FIELDS`).
+- Sau khi lưu, form khởi tạo lại theo dữ liệu server (`reset` + `key={shop.updatedAt}`).
+- Link mạng xã hội hiện dạng nút chữ (Facebook, Zalo, TikTok, Instagram, YouTube), vì `lucide-react` không có icon thương hiệu; link trống thì ẩn.
+- Hotline bấm được (`tel:`, bỏ khoảng trắng và dấu chấm); email là `mailto:`.
 
 ## Ghi chú UI
-- Link mạng xã hội trống thì ẩn icon đó, không hiện link hỏng.
-- Lỗi `SHOP_001` (chưa seed dữ liệu): hiện giao diện dự phòng, không làm vỡ trang.
-- Link mạng xã hội của `shop` là giá trị dự phòng cho chi nhánh nào để trống `facebookUrl` / `zaloUrl`.
-- Muốn dùng `ShopContact` trong `PublicLayout` (nằm ở `shared`) thì không import trực tiếp được, vì `shared` không được import `features`. Truyền qua props/slot từ `app/routes.tsx`, hoặc đặt footer ở `pages/`.
+- Lỗi `GET /shop` (kể cả `SHOP_001` chưa seed) ở trang công khai: footer chỉ hiện dòng bản quyền, hero chỉ hiện tên mặc định "Fight Station"; không làm vỡ trang.
+- `AdminShopPage` gặp `SHOP_001`: hiện thông báo cần chạy `npx prisma db seed` và nút "Thử lại" thay cho form.
+- Link mạng xã hội của `shop` là giá trị dự phòng cho chi nhánh để trống `facebookUrl` / `zaloUrl` (dùng khi làm `branch`).

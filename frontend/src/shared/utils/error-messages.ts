@@ -15,6 +15,8 @@ export const ERROR_MESSAGES: Record<string, string> = {
   AUTH_003: 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại',
   AUTH_004: 'Tài khoản đã bị khóa, liên hệ chủ quán',
   AUTH_005: 'Bạn không đủ quyền thực hiện thao tác này',
+
+  SHOP_001: 'Chưa có dữ liệu quán',
 }
 
 /** Thông báo cho người dùng từ một lỗi bất kỳ (thường là ApiError) */

@@ -17,6 +17,9 @@ interface ShopHeroProps {
 
 const DEFAULT_NAME = 'Fight Station'
 
+/** Dòng phụ ngay dưới tên quán */
+const HERO_SUBTITLE = 'Private room — Xem phim'
+
 /**
  * Hero trang chủ (theo prototype): badge, tên quán (chữ đầu nhiễu màu, phần sau chữ viền), tagline,
  * nút hành động, hàng số liệu và hình tay cầm. Tên quán hiện ngay (mặc định khi chưa có dữ liệu);
@@ -49,10 +52,14 @@ export function ShopHero({ stats = [], actions }: ShopHeroProps) {
             System online — Ready player one
           </p>
 
-          <h1 className="mb-6 font-display text-5xl leading-[0.95] font-black uppercase sm:text-7xl lg:text-8xl">
+          <h1 className="mb-4 font-display text-5xl leading-[0.95] font-black uppercase sm:text-7xl lg:text-8xl">
             <span className="inline-block animate-glitch text-ink">{first}</span>{' '}
             {rest.length > 0 && <span className="text-outline block">{rest.join(' ')}</span>}
           </h1>
+
+          <p className="text-glow mb-6 text-lg font-bold tracking-[0.3em] text-brand-500 uppercase sm:text-2xl">
+            {HERO_SUBTITLE}
+          </p>
 
           {isPending ? (
             <div aria-hidden="true" className="mb-10 h-20 max-w-xl animate-pulse bg-card" />

@@ -33,7 +33,7 @@ Trang chủ (`src/pages/HomePage.tsx`) ghép `BranchList` dưới `ShopHero` (m�
 | `pages/` | `AdminBranchesPage`, `AdminBranchNewPage`, `AdminBranchEditPage` (trang công khai ở `src/pages/BranchesPage.tsx`) |
 
 ## Public API (`index.ts`)
-- `BranchList` (prop `fallbackFacebookUrl`), `BranchPicker`, `useBranchSummary` (`{ count, ps5Total }` cho số liệu hero trang chủ; dùng chung cache `useBranches`, không gọi API thêm), `BRANCH_SEARCH_PARAM`, `branchOwnerRoutes`, type `Branch`.
+- `BranchList` (prop `fallbackFacebookUrl`), `BranchPicker`, `BranchFooterList` (tên chi nhánh đang hoạt động cho cột "Chi nhánh" ở footer, bấm → `/branches`; dùng chung cache `useBranches`), `useBranchSummary` (`{ count, ps5Total }` cho số liệu hero trang chủ; dùng chung cache `useBranches`, không gọi API thêm), `BRANCH_SEARCH_PARAM`, `branchOwnerRoutes`, type `Branch`.
 
 ## Query key
 - `['branches', query]` (query đã gộp `limit: 100`), `['branch', id, { includeInactive }]`.

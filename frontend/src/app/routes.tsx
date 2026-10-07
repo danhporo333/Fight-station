@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router'
 
 import { authAdminRoutes, authPublicRoutes, RequireRole } from '@/features/auth'
-import { branchOwnerRoutes } from '@/features/branch'
+import { BranchFooterList, branchOwnerRoutes } from '@/features/branch'
 import { gameAdminRoutes } from '@/features/game'
 import { ShopFooter, shopOwnerRoutes } from '@/features/shop'
 import { HomePage } from '@/pages/HomePage'
@@ -22,7 +22,13 @@ const PUBLIC_CTA: PublicNavItem = { to: '/branches', label: 'Liên hệ' }
 // Chỉ ghép route. Mỗi feature tự khai báo RouteObject[] trong features/[x]/routes.tsx rồi thêm vào đây.
 export const router = createBrowserRouter([
   {
-    element: <PublicLayout navItems={PUBLIC_NAV} cta={PUBLIC_CTA} footer={<ShopFooter />} />,
+    element: (
+      <PublicLayout
+        navItems={PUBLIC_NAV}
+        cta={PUBLIC_CTA}
+        footer={<ShopFooter links={PUBLIC_NAV} branches={<BranchFooterList />} />}
+      />
+    ),
     errorElement: <ErrorFallback />,
     children: [
       { index: true, element: <HomePage /> },

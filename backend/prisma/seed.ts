@@ -9,6 +9,7 @@ import {
   seedBranches as branchData,
   seedGameCategories as gameCategoryData,
   seedGames as gameData,
+  seedMenu as menuData,
   seedShop as shopData,
 } from './seed-data';
 
@@ -136,11 +137,46 @@ async function seedGames(): Promise<void> {
   );
 }
 
+/**
+ * Nhóm menu rồi món mẫu, CHỈ khi bảng menu_item đang trống (cùng lý do với seedGames).
+ * Nhóm upsert theo tên; món tạo bằng createMany, thứ tự trong mảng là sortOrder. Dữ liệu là menu thật
+ * của quán (seed-data.ts), không phải mẫu prototype.
+ */
+async function seedMenu(): Promise<void> {
+  if ((await prisma.menuItem.count()) > 0) {
+    logger.info('seed.menu_exists');
+    return;
+  }
+
+  let itemCount = 0;
+  for (const [index, category] of menuData.entries()) {
+    const { id: menuCategoryId } = await prisma.menuCategory.upsert({
+      where: { name: category.label },
+      update: {},
+      create: { name: category.label, sortOrder: index },
+      select: { id: true },
+    });
+    const { count } = await prisma.menuItem.createMany({
+      data: category.items.map((item, itemIndex) => ({
+        menuCategoryId,
+        name: item.name,
+        description: emptyToNull(item.desc),
+        priceVnd: item.price,
+        isBestSeller: item.bestSeller ?? false,
+        sortOrder: itemIndex,
+      })),
+    });
+    itemCount += count;
+  }
+  logger.info({ categories: menuData.length, items: itemCount }, 'seed.menu_created');
+}
+
 async function main(): Promise<void> {
   await seedOwner();
   await seedShop();
   await seedBranches();
   await seedGames();
+  await seedMenu();
 }
 
 main()

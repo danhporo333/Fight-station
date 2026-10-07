@@ -45,7 +45,8 @@ export interface SeedMenuCategory {
   /** Khóa riêng của data.js; bảng menu_category không có cột này. */
   id: string;
   label: string;
-  items: { name: string; desc: string; price: number }[];
+  /** `bestSeller`: món có huy hiệu "Best seller" trên tờ menu */
+  items: { name: string; desc: string; price: number; bestSeller?: boolean }[];
 }
 
 export interface SeedPromotion {
@@ -165,65 +166,127 @@ export const seedPricePlans: SeedPricePlan[] = [
   },
 ];
 
+// Menu thật của quán (tờ menu "Ăn vặt phủ phê", 2026-10-07). Giá đơn vị đồng; phần trong ngoặc của
+// tờ menu (vị, số lượng) đưa vào `desc`.
 export const seedMenu: SeedMenuCategory[] = [
   {
-    id: 'combo',
-    label: 'Combo',
+    id: 'drink',
+    label: 'Nước uống',
     items: [
-      { name: 'Combo Game Thủ #1', desc: 'Mì cay + Coca + Snack', price: 55000 },
-      { name: 'Combo Game Thủ #2', desc: 'Bánh mì trứng + Trà đào', price: 45000 },
-      { name: 'Combo Đêm Khuya', desc: 'Mì ly + Red Bull + Bánh quy', price: 40000 },
-      { name: 'Combo Đối Kháng', desc: '2 ly trà sữa + Khoai chiên', price: 70000 },
-      { name: 'Combo VIP', desc: 'Pizza mini + 2 nước + Snack', price: 120000 },
-      { name: 'Combo Sinh Viên', desc: 'Cơm gà + Nước ngọt', price: 50000 },
+      { name: 'Nước ép trái cây', desc: 'Theo mùa', price: 32000 },
+      { name: 'Nước suối', desc: '', price: 15000 },
+      { name: 'Nước ngọt', desc: '', price: 20000 },
+      { name: 'Redbull', desc: '', price: 25000 },
+      { name: 'Cafe đá', desc: '', price: 20000 },
+      { name: 'Cafe sữa', desc: '', price: 23000 },
+      { name: 'Bạc xỉu', desc: '', price: 25000 },
+      { name: 'Latte Cafe', desc: '', price: 30000 },
+      { name: 'Sâm dứa sữa', desc: '', price: 30000 },
+      { name: 'Sữa sốt dưa gang', desc: '', price: 30000 },
+      { name: 'Strongbow', desc: '', price: 35000 },
     ],
   },
   {
-    id: 'food',
-    label: 'Đồ Ăn',
+    id: 'tea',
+    label: 'Trà',
     items: [
-      { name: 'Mì Cay Hàn Quốc', desc: 'Cay xé lưỡi, full topping', price: 35000 },
-      { name: 'Bánh Mì Trứng', desc: 'Bánh mì giòn, trứng ốp la', price: 20000 },
-      { name: 'Cơm Gà Xối Mỡ', desc: 'Gà giòn rụm, cơm tấm', price: 40000 },
-      { name: 'Pizza Mini', desc: 'Pizza phô mai 4 vị', price: 60000 },
-      { name: 'Hot Dog', desc: 'Xúc xích Đức + bánh mì', price: 30000 },
-      { name: 'Mì Ly Trộn', desc: 'Mì ly cao cấp, đủ vị', price: 15000 },
+      { name: 'Trà đá', desc: '', price: 10000 },
+      { name: 'Trà đào', desc: '', price: 30000 },
+      { name: 'Trà xoài', desc: '', price: 30000 },
+      { name: 'Trà dưa lưới', desc: '', price: 30000 },
+      { name: 'Trà ổi hồng', desc: '', price: 30000 },
+      { name: 'Trà chanh liptong', desc: '', price: 30000 },
+      { name: 'Trà tắc/Tắc thái xanh', desc: '', price: 30000 },
+    ],
+  },
+  {
+    id: 'yogurt',
+    label: 'Sữa chua & Soda',
+    items: [
+      {
+        name: 'Sữa chua',
+        desc: 'Việt quất / Chanh dây / Dâu / Xoài / Dưa lưới / Đào',
+        price: 30000,
+      },
+      { name: 'Sữa chua tắc', desc: '', price: 30000 },
+      {
+        name: 'Soda',
+        desc: 'Việt quất / Chanh dây / Dâu / Xoài / Dưa lưới / Đào / Ổi hồng',
+        price: 30000,
+      },
+    ],
+  },
+  {
+    id: 'fried-rice',
+    label: 'Cơm chiên',
+    items: [
+      { name: 'Cơm chiên trứng', desc: '', price: 35000 },
+      { name: 'Cơm chiên xúc xích', desc: '', price: 40000 },
+      { name: 'Cơm chiên trứng, xúc xích', desc: '', price: 45000 },
+      { name: 'Cơm chiên thịt bò', desc: '', price: 45000 },
+      { name: 'Cơm chiên thịt bò, trứng', desc: '', price: 48000 },
+    ],
+  },
+  {
+    id: 'noodle',
+    label: 'Mì',
+    items: [
+      { name: 'Mì trộn best seller', desc: '', price: 45000, bestSeller: true },
+      { name: 'Mì trộn trứng', desc: '', price: 30000 },
+      { name: 'Mì trộn xúc xích', desc: '', price: 35000 },
+      { name: 'Mì trộn thịt bò', desc: '', price: 45000 },
+      { name: 'Mì trộn trứng, xúc xích', desc: '', price: 40000 },
+      { name: 'Mì modern xúc xích', desc: '', price: 25000 },
+      { name: 'Mì nước trứng', desc: '', price: 30000 },
+      { name: 'Mì nước xúc xích', desc: '', price: 35000 },
+      { name: 'Mì nước trứng, xúc xích', desc: '', price: 40000 },
+      { name: 'Mì nước bò', desc: '', price: 45000 },
+      { name: 'Mì nước bò, trứng', desc: '', price: 48000 },
+    ],
+  },
+  {
+    id: 'macaroni',
+    label: 'Nui',
+    items: [
+      { name: 'Nui xào trứng', desc: '', price: 35000 },
+      { name: 'Nui xào thịt bò', desc: '', price: 45000 },
+      { name: 'Nui xào bò, trứng', desc: '', price: 48000 },
+    ],
+  },
+  {
+    id: 'street-food',
+    label: 'Đồ ăn vặt',
+    items: [
+      { name: 'Khoai tây chiên', desc: '', price: 35000 },
+      { name: 'Xúc xích chiên', desc: '', price: 35000 },
+      { name: 'Bò viên – cá viên', desc: '', price: 35000 },
+      { name: 'Đậu hũ phô mai', desc: '', price: 35000 },
+      { name: 'Phô mai que', desc: '3 cây', price: 35000 },
+      { name: 'Chả mực', desc: '', price: 35000 },
+      { name: 'Gà viên', desc: '', price: 48000 },
+      { name: 'Combo bé nhỏ', desc: '', price: 48000, bestSeller: true },
+      { name: 'Combo bé bự', desc: '', price: 58000 },
     ],
   },
   {
     id: 'snack',
     label: 'Snack',
     items: [
-      { name: 'Khoai Tây Chiên', desc: 'Giòn rụm, sốt phô mai', price: 25000 },
-      { name: 'Gà Rán Popcorn', desc: '6 miếng giòn cay', price: 35000 },
-      { name: 'Bánh Quy Hộp', desc: 'Bánh quy bơ thơm lừng', price: 15000 },
-      { name: 'Snack Hỗn Hợp', desc: 'Combo 3 loại snack', price: 20000 },
-      { name: 'Phô Mai Que', desc: '5 que phô mai chiên', price: 30000 },
-      { name: 'Đậu Phộng Rang', desc: 'Đậu rang muối tỏi', price: 10000 },
+      { name: 'Oishi', desc: '', price: 10000 },
+      { name: "Swings/O'Star/Lays", desc: '', price: 15000 },
+      { name: 'Que cay cay', desc: '', price: 10000 },
+      { name: 'Mì enaak', desc: '', price: 10000 },
+      { name: 'Thịt bò khô', desc: '', price: 35000 },
     ],
   },
   {
-    id: 'drink',
-    label: 'Nước',
+    id: 'topping',
+    label: 'Topping thêm',
     items: [
-      { name: 'Coca / Pepsi', desc: 'Lon 330ml ướp lạnh', price: 15000 },
-      { name: 'Red Bull', desc: 'Tỉnh táo cày đêm', price: 20000 },
-      { name: 'Trà Đào', desc: 'Trà đào cam sả mát lạnh', price: 25000 },
-      { name: 'Trà Sữa', desc: 'Trà sữa trân châu', price: 30000 },
-      { name: 'Nước Suối', desc: 'Lavie 500ml', price: 8000 },
-      { name: 'Sting Dâu', desc: 'Tăng lực vị dâu', price: 15000 },
-    ],
-  },
-  {
-    id: 'coffee',
-    label: 'Cafe',
-    items: [
-      { name: 'Cafe Đen', desc: 'Cafe phin đậm đà', price: 20000 },
-      { name: 'Cafe Sữa', desc: 'Cafe sữa đá truyền thống', price: 22000 },
-      { name: 'Bạc Xỉu', desc: 'Sữa nhiều cafe ít', price: 25000 },
-      { name: 'Cafe Muối', desc: 'Trend mới, đáng thử', price: 28000 },
-      { name: 'Americano', desc: 'Cafe đen Espresso', price: 30000 },
-      { name: 'Cappuccino', desc: 'Cafe sữa nóng béo ngậy', price: 35000 },
+      { name: 'Mì/Nui/Cơm', desc: '', price: 8000 },
+      { name: 'Trứng', desc: '', price: 8000 },
+      { name: 'Thịt bò', desc: '', price: 25000 },
+      { name: 'Bò viên/Cá viên/Xúc xích', desc: '', price: 12000 },
     ],
   },
 ];

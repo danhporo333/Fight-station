@@ -154,3 +154,41 @@ model GameGameCategory {
   @@index([gameCategoryId], map: "idx_game_game_category_game_category_id")
   @@map("game_game_category")
 }
+
+// ─── menu ───────────────────────────────────────────────────────────────
+
+model MenuCategory {
+  id        Int        @id @default(autoincrement()) @db.UnsignedInt
+  name      String     @unique(map: "idx_menu_category_name") @db.VarChar(50)
+  sortOrder Int        @default(0) @map("sort_order")
+  isActive  Boolean    @default(true) @map("is_active")
+  createdAt DateTime   @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt DateTime   @updatedAt @map("updated_at") @db.DateTime(3)
+  items     MenuItem[]
+
+  @@map("menu_category")
+}
+
+// Món ăn, nước uống. is_available = false là "tạm hết" (vẫn hiện); is_active = false mới là ẩn.
+// CHECK (price_vnd >= 0) thêm tay trong migration.
+model MenuItem {
+  id             Int          @id @default(autoincrement()) @db.UnsignedInt
+  menuCategoryId Int          @map("menu_category_id") @db.UnsignedInt
+  name           String       @db.VarChar(150)
+  description    String?      @db.VarChar(255)
+  priceVnd       Int          @map("price_vnd") @db.UnsignedInt
+  imageUrl       String?      @map("image_url") @db.VarChar(500)
+  isAvailable    Boolean      @default(true) @map("is_available")
+  // Món bán chạy: trang khách hiện huy hiệu "Best seller"
+  isBestSeller   Boolean      @default(false) @map("is_best_seller")
+  sortOrder      Int          @default(0) @map("sort_order")
+  isActive       Boolean      @default(true) @map("is_active")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.DateTime(3)
+  // Xóa nhóm còn món bị chặn (RESTRICT)
+  menuCategory   MenuCategory @relation(fields: [menuCategoryId], references: [id], onDelete: Restrict)
+
+  // Tên món không trùng trong cùng nhóm; cũng phục vụ lọc theo nhóm (không cần index riêng cho FK)
+  @@unique([menuCategoryId, name], map: "idx_menu_item_menu_category_id_name")
+  @@map("menu_item")
+}

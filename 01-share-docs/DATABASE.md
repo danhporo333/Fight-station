@@ -111,6 +111,7 @@ Mọi bảng đều có 3 cột chung, **không lặp lại** ở các bảng d�
 | | price_vnd | INT UNSIGNED | NOT NULL (đơn vị đồng) |
 | | image_url | VARCHAR(500) | NULL |
 | | is_available | bool | NOT NULL, DEFAULT 1 (0 = tạm hết, vẫn hiện trên web) |
+| | is_best_seller | bool | NOT NULL, DEFAULT 0 (1 = món bán chạy, hiện huy hiệu "Best seller") |
 | | sort_order | INT | NOT NULL, DEFAULT 0 |
 | | is_active | bool | NOT NULL, DEFAULT 1 |
 | | **Index** | — | `idx_menu_item_menu_category_id_name` (UNIQUE, cũng phục vụ lọc theo nhóm nên không cần index riêng cho FK) |

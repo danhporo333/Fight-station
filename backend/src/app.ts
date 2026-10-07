@@ -21,6 +21,17 @@ import {
   GameRepository,
   GameService,
 } from '@/features/game';
+import {
+  createMenuCategoryRouter,
+  createMenuItemRouter,
+  createMenuRouter,
+  MenuCategoryController,
+  MenuCategoryRepository,
+  MenuCategoryService,
+  MenuItemController,
+  MenuItemRepository,
+  MenuItemService,
+} from '@/features/menu';
 import { createShopRouter, ShopController, ShopRepository, ShopService } from '@/features/shop';
 import {
   apiRateLimit,
@@ -53,6 +64,12 @@ export function createApp(db: Database = prisma): Express {
     new GameCategoryService(new GameCategoryRepository(db)),
   );
 
+  // menu: một controller món phục vụ cả /menu (toàn bộ menu) và /menu-items
+  const menuItemController = new MenuItemController(new MenuItemService(new MenuItemRepository(db)));
+  const menuCategoryController = new MenuCategoryController(
+    new MenuCategoryService(new MenuCategoryRepository(db)),
+  );
+
   const app = express();
   app.disable('x-powered-by');
 
@@ -73,6 +90,9 @@ export function createApp(db: Database = prisma): Express {
   v1.use('/branches', createBranchRouter(branchController, guards));
   v1.use('/games', createGameRouter(gameController, guards));
   v1.use('/game-categories', createGameCategoryRouter(gameCategoryController, guards));
+  v1.use('/menu', createMenuRouter(menuItemController));
+  v1.use('/menu-items', createMenuItemRouter(menuItemController, guards));
+  v1.use('/menu-categories', createMenuCategoryRouter(menuCategoryController, guards));
   app.use(config.api.prefix, apiRateLimit, v1);
 
   app.use(notFound);

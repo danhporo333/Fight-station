@@ -148,12 +148,13 @@ Cột Auth: **Công khai** = không cần token; **Admin** = owner hoặc staff;
 ### Menu (đồ ăn, nước uống)
 | Method | Path | Mô tả | Auth |
 |---|---|---|---|
-| GET | `/menu` | Toàn bộ menu: nhóm kèm mảng `items` (dùng cho trang chủ) | Công khai |
-| GET | `/menu-items` | Danh sách món. Lọc: `q`, `categoryId`, `isAvailable` | Công khai |
-| POST | `/menu-items` | Thêm món | Admin |
-| PUT | `/menu-items/:id` | Sửa món (gồm đổi `isAvailable`: tạm hết) | Admin |
+| GET | `/menu` | Toàn bộ menu: nhóm kèm mảng `items` (dùng cho trang chủ). Chỉ nhóm và món đang hiện; nhóm không còn món nào đang hiện thì bỏ | Công khai |
+| GET | `/menu-items` | Danh sách món, kèm `category: { id, name }`. Lọc: `q`, `categoryId`, `isAvailable` | Công khai |
+| GET | `/menu-items/:id` | Chi tiết một món (trang sửa món) | Công khai |
+| POST | `/menu-items` | Thêm món (`menuCategoryId`, `name`, `priceVnd` bắt buộc) | Admin |
+| PUT | `/menu-items/:id` | Sửa món (gồm đổi `isAvailable`: tạm hết; `isBestSeller`: món bán chạy) | Admin |
 | DELETE | `/menu-items/:id` | Xóa món | Admin |
-| GET | `/menu-categories` | Danh sách nhóm menu | Công khai |
+| GET | `/menu-categories` | Danh sách nhóm menu, kèm `itemCount` (số món, kể cả món ẩn) | Công khai |
 | POST | `/menu-categories` | Thêm nhóm | Admin |
 | PUT | `/menu-categories/:id` | Sửa nhóm | Admin |
 | DELETE | `/menu-categories/:id` | Xóa nhóm (409 nếu còn món) | Admin |

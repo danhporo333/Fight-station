@@ -27,6 +27,12 @@ export const ErrorCode = {
   GAME_CATEGORY_NAME_TAKEN: 'GAME_004',
   GAME_CATEGORY_HAS_GAMES: 'GAME_005',
   GAME_BRANCH_NOT_FOUND: 'GAME_006',
+
+  // menu (món và nhóm menu)
+  MENU_ITEM_NOT_FOUND: 'MENU_001',
+  MENU_CATEGORY_NOT_FOUND: 'MENU_002',
+  MENU_NAME_TAKEN: 'MENU_003',
+  MENU_CATEGORY_HAS_ITEMS: 'MENU_004',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];

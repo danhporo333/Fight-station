@@ -43,10 +43,10 @@ Trang chủ (`src/pages/HomePage.tsx`) ghép `BranchList` dưới `ShopHero` (m�
 - Không phân trang, không ô tìm kiếm (quán chỉ có vài chi nhánh): mọi danh sách gọi `limit: 100`.
 - Form thêm/sửa là trang riêng (không popup); lưu xong về `/admin/branches` kèm toast. Nút "Lưu" khóa khi form chưa đổi.
 - Form giữ mọi ô dạng chuỗi; ô số kiểm tra bằng regex (số nguyên, khoảng giá trị khớp `branch.dto.ts`), `toBranchPayload` đổi sang `number`, ô trống → `null`. Lỗi `details` của API gán vào đúng ô (`applyServerErrors` + `BRANCH_FORM_FIELDS`).
-- Xóa dùng `ConfirmDialog` (shared), nói rõ xóa thật và gợi ý "bỏ chọn Đang hoạt động" để ẩn tạm. Lỗi xóa (vd `BRANCH_001`) → toast.
+- Xóa dùng `ConfirmDialog` (shared), nói rõ xóa thật, game chỉ có ở riêng chi nhánh đó sẽ thành "mọi chi nhánh", và gợi ý "bỏ chọn Đang hoạt động" để ẩn tạm. Lỗi xóa (vd `BRANCH_001`) → toast.
 - Link tự tạo khi trống: bản đồ → `https://www.google.com/maps/search/?api=1&query=<địa chỉ>`; Zalo → `https://zalo.me/<số điện thoại chỉ còn chữ số>` (không có số thì ẩn nút); gọi → `tel:`.
 - **Facebook trống thì dùng Facebook của quán** (giống prototype): trang ghép truyền `fallbackFacebookUrl` vào `BranchList` → `BranchCard`; `branch` không import `shop`. Không có cả hai thì ẩn nút.
-- `BranchPicker`: dãy nút "Tất cả chi nhánh" + từng chi nhánh, ghi `?branch=<id>` lên URL (`replace`, xóa `page`), không lưu store; đang tải/lỗi thì ẩn. Chưa có trang nào dùng (chờ `game`, ghép ở `src/pages/GamesPage.tsx`).
+- `BranchPicker`: dãy nút vuông kiểu neon (chữ mono in hoa) "Tất cả chi nhánh" + từng chi nhánh, ghi `?branch=<id>` lên URL (`replace`, xóa `page`), không lưu store; đang tải/lỗi thì ẩn. Dùng ở `src/pages/GamesPage.tsx` (lọc game theo chi nhánh).
 
 ## Ghi chú UI
 - `BranchCard` (giao diện neon theo prototype, đã được chủ dự án chỉnh): thẻ nền `bg-card`, vạch gradient cam trên đỉnh; nhãn `CHI NHÁNH 01` (số thứ tự theo vị trí trong danh sách, 2 chữ số) và tên in hoa, cả hai căn giữa; danh sách địa chỉ / hotline (`tel:`) / giờ mở cửa ngăn bằng gạch đứt; 3 nút xếp dọc "Facebook", "Zalo" (nền cam), "Đường đi" (viền). Lưới 4 cột từ `xl`, 2 cột từ `sm`.

@@ -69,8 +69,9 @@ export function AdminBranchesPage() {
         onConfirm={confirmDelete}
         onCancel={() => setToDelete(null)}
       >
-        Xóa thật, không khôi phục được. Game đang gắn với chi nhánh này sẽ tự được gỡ. Muốn tạm ẩn
-        thì vào “Sửa” và bỏ chọn “Đang hoạt động”.
+        Xóa thật, không khôi phục được. Game đang gắn với chi nhánh này sẽ tự được gỡ; game chỉ có ở
+        riêng chi nhánh này sẽ chuyển thành có ở mọi chi nhánh. Muốn tạm ẩn thì vào “Sửa” và bỏ chọn
+        “Đang hoạt động”.
       </ConfirmDialog>
     </div>
   )

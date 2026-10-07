@@ -19,6 +19,13 @@ export const ERROR_MESSAGES: Record<string, string> = {
   SHOP_001: 'Chưa có dữ liệu quán',
 
   BRANCH_001: 'Không tìm thấy chi nhánh (có thể đã bị xóa)',
+
+  GAME_001: 'Không tìm thấy game (có thể đã bị xóa)',
+  GAME_002: 'Tên game đã tồn tại',
+  GAME_003: 'Không tìm thấy thể loại (có thể đã bị xóa)',
+  GAME_004: 'Tên thể loại đã tồn tại',
+  GAME_005: 'Thể loại còn game, hãy chuyển hoặc xóa game trước',
+  GAME_006: 'Có chi nhánh không còn tồn tại, hãy tải lại trang và chọn lại',
 }
 
 /** Thông báo cho người dùng từ một lỗi bất kỳ (thường là ApiError) */

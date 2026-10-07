@@ -3,9 +3,10 @@ import { useSearchParams } from 'react-router'
 import { useBranches } from '../hooks/useBranches'
 import { BRANCH_SEARCH_PARAM } from '../utils/branch.utils'
 
-const PILL_CLASS = 'rounded-full border px-3 py-1 text-sm transition-colors'
-const ACTIVE_CLASS = 'border-brand-500 bg-brand-600/15 font-semibold text-brand-300'
-const IDLE_CLASS = 'border-neutral-700 text-neutral-300 hover:border-brand-500'
+const PILL_CLASS =
+  'border px-3 py-1.5 font-mono text-xs tracking-wider uppercase transition-colors hover:border-brand-500 hover:text-brand-500'
+const ACTIVE_CLASS = 'border-brand-500 bg-brand-500/15 text-brand-500'
+const IDLE_CLASS = 'border-brand-500/20 text-muted'
 
 /**
  * Chọn chi nhánh để lọc (vd danh sách game). Ghi vào URL `?branch=<id>`, không lưu store;
@@ -32,7 +33,7 @@ export function BranchPicker() {
   const options = [{ id: null, name: 'Tất cả chi nhánh' }, ...branches]
 
   return (
-    <div role="group" aria-label="Chọn chi nhánh" className="flex flex-wrap gap-2">
+    <div role="group" aria-label="Chọn chi nhánh" className="flex flex-wrap justify-center gap-2">
       {options.map((option) => {
         const active = option.id === null ? selected === null : selected === String(option.id)
         return (

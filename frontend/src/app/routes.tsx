@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router'
 
 import { authAdminRoutes, authPublicRoutes, RequireRole } from '@/features/auth'
 import { branchOwnerRoutes } from '@/features/branch'
+import { gameAdminRoutes } from '@/features/game'
 import { ShopFooter, shopOwnerRoutes } from '@/features/shop'
 import { HomePage } from '@/pages/HomePage'
 import { ErrorFallback } from '@/shared/components/ErrorBoundary'
@@ -11,6 +12,7 @@ import { NotFoundPage } from '@/shared/components/NotFoundPage'
 // Menu trang khách: mỗi feature có trang công khai thì thêm một dòng
 const PUBLIC_NAV: PublicNavItem[] = [
   { to: '/', label: 'Trang chủ' },
+  { to: '/games', label: 'Game' },
   { to: '/branches', label: 'Chi nhánh' },
 ]
 
@@ -26,6 +28,10 @@ export const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       ...authPublicRoutes,
       // Trang ghép nhiều feature nằm ở src/pages
+      {
+        path: 'games',
+        lazy: async () => ({ Component: (await import('@/pages/GamesPage')).GamesPage }),
+      },
       {
         path: 'branches',
         lazy: async () => ({ Component: (await import('@/pages/BranchesPage')).BranchesPage }),
@@ -43,7 +49,8 @@ export const router = createBrowserRouter([
       // Chưa có trang tổng quan: tạm vào trang tài khoản
       { index: true, element: <Navigate to="account" replace /> },
       ...authAdminRoutes,
-      // ...gameRoutes, menuRoutes, promotionRoutes (Admin)
+      ...gameAdminRoutes,
+      // ...menuRoutes, promotionRoutes (Admin)
       {
         // Trang chỉ owner: staff vào sẽ thấy "Không đủ quyền"
         element: <RequireRole role="owner" />,

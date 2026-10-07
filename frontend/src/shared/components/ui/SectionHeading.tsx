@@ -23,7 +23,6 @@ export function SectionHeading({
   return (
     <header className="mb-12 flex flex-col items-center gap-4 text-center">
       <p className="font-mono text-xs tracking-[0.3em] text-neon-red uppercase">
-        <span className="opacity-60">// </span>
         {tag}
       </p>
       <Heading className="text-4xl leading-tight font-bold uppercase sm:text-5xl lg:text-6xl">

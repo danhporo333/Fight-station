@@ -5,8 +5,8 @@
 | **Phía** | FE (frontend) |
 | **Chế độ** | `code` |
 | **Target** | `shop` |
-| **Ngày viết** | 2026-10-07 |
-| **Tài liệu đã đọc** | `frontend/src/features/shop/context.md` (trạng thái ✅ Đã cài đặt 2026-10-07), `frontend/docs/FE-ARCHITECTURE.md` (mục 3, 6, 9) |
+| **Ngày viết** | 2026-10-07 (viết lại sau khi đổi sang giao diện neon theo prototype: hero mới có số liệu và hình tay cầm, `useShop` được export cho trang ghép) |
+| **Tài liệu đã đọc** | `frontend/src/features/shop/context.md` (trạng thái ✅ Đã cài đặt 2026-10-07), `frontend/src/features/branch/context.md` (trang chủ, `/branches`, `useBranchSummary`), `frontend/docs/FE-ARCHITECTURE.md` (mục 3, 6, 9, 10) |
 
 > Bài viết dựa trên tài liệu tại ngày viết. Nếu code `shop` thay đổi sau đó, đối chiếu lại với `context.md`.
 
@@ -19,12 +19,14 @@ Phía giao diện của `shop` hiển thị **thông tin quán** ở 3 chỗ:
 | Chỗ | Ai thấy | Nội dung |
 |---|---|---|
 | **Footer** (chân trang) mọi trang công khai | Khách | Tên quán, hotline (bấm để gọi), email, giờ mở cửa, nút mạng xã hội |
-| **Hero** (khối đầu) trang chủ `/` | Khách | Giờ mở cửa, tên quán, tagline |
+| **Hero** (khối đầu) trang chủ `/` | Khách | Tên quán cỡ lớn, tagline, nút "Xem game" / "Tìm chi nhánh", hàng số liệu (máy PS5, chi nhánh, giờ mở cửa), hình tay cầm |
 | **`/admin/shop`** | Chỉ chủ quán | Form sửa toàn bộ thông tin trên |
 
 Ví dụ đời thường: thông tin quán giống **một tờ giấy dán ở 3 nơi** (cửa, quầy, bàn). Chủ quán sửa ở một chỗ (form quản trị), cả 3 nơi tự đổi theo. Đó là nhờ cả 3 cùng đọc **một bản lưu chung** (cache TanStack Query, key `['shop']`).
 
-`shop` **không có trang công khai riêng**. Footer và hero là component, được ghép vào layout và trang chủ.
+`shop` **không có trang công khai riêng**. Footer và hero là component, được ghép vào layout và trang chủ. Ngoài ra, trang ghép khác cũng đọc thông tin quán qua `useShop`: trang `/branches` và trang chủ lấy **Facebook của quán** làm link dự phòng cho chi nhánh nào để trống Facebook.
+
+Giao diện theo bản prototype (theme "neon cam", xem `FE-ARCHITECTURE.md` mục 10): màu và font khai báo một chỗ trong `src/styles/index.css`, component chỉ dùng class như `text-brand-500`, `bg-dark`, `font-display`.
 
 ### Cấu trúc thư mục và luồng gọi
 
@@ -38,7 +40,7 @@ component → hook (TanStack Query) → service → http.ts (Axios) → API /api
 | `services/` | `getShop`, `updateShop` |
 | `hooks/` | `shop.keys.ts`, `useShop`, `useUpdateShop` |
 | `utils/` | Hàm thuần: lọc link mạng xã hội, đổi dữ liệu form ↔ API, tạo link gọi điện |
-| `components/` | `ShopFooter`, `ShopHero`, `ShopSocialLinks`, `ShopForm` |
+| `components/` | `ShopFooter`, `ShopHero`, `HeroController` (hình tay cầm), `ShopSocialLinks`, `ShopForm` |
 | `pages/` | `AdminShopPage` |
 | `routes.tsx`, `index.ts` | Route quản trị (lazy) và public API |
 
@@ -88,7 +90,7 @@ Cho component dùng dữ liệu quán mà không cần tự lo gọi API, đang 
 
 | Hook | Làm gì |
 |---|---|
-| `useShop` | Lấy thông tin quán, query key `['shop']`. Footer, hero và trang quản trị **cùng dùng một bản cache**, nên mở trang chỉ gọi API **một lần** dù 2–3 component cùng cần |
+| `useShop` | Lấy thông tin quán, query key `['shop']`. Footer, hero, trang quản trị và các trang ghép (trang chủ, `/branches`) **cùng dùng một bản cache**, nên mở trang chỉ gọi API **một lần** dù nhiều chỗ cùng cần. Đây là hook duy nhất được export ra ngoài feature |
 | `useUpdateShop` | Gửi sửa. Thành công thì `invalidateQueries(['shop'])`: báo cache "dữ liệu cũ rồi", TanStack Query tự tải lại, và footer, hero đổi theo |
 | `shop.keys.ts` | Gom query key một chỗ, tránh gõ sai `['shop']` ở mỗi nơi một kiểu |
 
@@ -123,24 +125,57 @@ Chân trang của mọi trang công khai.
 - Tầng: component
 
 ### Phân tích
-- Gọi `useShop()`. **Có dữ liệu:** hiện tên quán, nút mạng xã hội (`ShopSocialLinks`), hotline (link `tel:`), email (link `mailto:`) và giờ mở cửa. Dòng nào trống thì ẩn dòng đó.
+- Gọi `useShop()`. **Có dữ liệu:** hiện tên quán (chữ Orbitron phát sáng), nút mạng xã hội (`ShopSocialLinks`, khung viền cam chữ in hoa), hotline (link `tel:`), email (link `mailto:`) và giờ mở cửa. Dòng nào trống thì ẩn dòng đó. Nền footer là màu `dark`, hơi sáng hơn nền trang.
 - **Đang tải, lỗi, hay DB chưa seed (`SHOP_001`):** chỉ hiện dòng "© 2026 Fight Station". Trang **không bị vỡ**, khách vẫn xem được nội dung chính.
 - Icon điện thoại, thư, đồng hồ lấy từ `lucide-react`. Mạng xã hội hiện bằng **nút chữ** (Facebook, Zalo...), vì `lucide-react` không có icon thương hiệu.
 - Link mạng xã hội mở tab mới với `rel="noopener noreferrer"`, để trang kia không điều khiển được tab của mình.
 
 **Vì sao footer nằm trong feature, mà layout lại nằm trong `shared`?** `PublicLayout` ở `shared/` **không được import** `features/` (quy tắc dự án, ESLint chặn). Vì vậy `PublicLayout` nhận prop `footer`, còn `app/routes.tsx` (nơi được phép biết mọi feature) truyền `<ShopFooter />` vào. Đây gọi là ghép bằng **props/slot**.
 
+Menu trên header cũng làm cùng cách: `PublicLayout` có thêm prop `navItems` (danh sách `PUBLIC_NAV`: Trang chủ, Chi nhánh…) và `cta` (nút "Liên hệ" vát góc). Mỗi feature có trang công khai thì thêm một dòng vào `PUBLIC_NAV`.
+
+```tsx
+// app/routes.tsx
+<PublicLayout navItems={PUBLIC_NAV} cta={PUBLIC_CTA} footer={<ShopFooter />} />
+```
+
 ---
 
-## 📁 File: `components/ShopHero.tsx`
+## 📁 File: `components/ShopHero.tsx` và `HeroController.tsx`
 
 ### Mục đích
-Khối đầu trang chủ.
+Khối đầu trang chủ, làm theo bản prototype.
 
 ### Phân tích
-- Tên quán hiện ngay, mặc định là "Fight Station" khi chưa có dữ liệu, nên tiêu đề không bao giờ trống.
-- Đang tải thì tagline hiện **khung xám nhấp nháy** (skeleton). Có dữ liệu thì hiện tagline, và giờ mở cửa trong khung viên thuốc phía trên.
-- `src/pages/HomePage.tsx` chỉ còn `<ShopHero />`. Sau này trang chủ sẽ ghép thêm danh sách game, bảng giá, menu… từ các feature khác.
+
+**Các phần, từ trên xuống:**
+- **Badge** "SYSTEM ONLINE — READY PLAYER ONE" có chấm cam nhấp nháy.
+- **Tên quán** cỡ rất lớn, tách theo dấu cách: chữ đầu ("FIGHT") màu trắng có **hiệu ứng nhiễu màu** (`animate-glitch`), phần còn lại ("STATION") là **chữ rỗng chỉ có viền cam** (`text-outline`). Chưa có dữ liệu thì dùng tên mặc định "Fight Station", nên tiêu đề không bao giờ trống. Giữa hai phần có một dấu cách ẩn, để trình đọc màn hình đọc đúng "Fight Station" thay vì "FightStation".
+- **Tagline**: đang tải thì hiện khung xám nhấp nháy.
+- **Nút hành động** và **hàng số liệu** (xem "Props" bên dưới).
+- **`HeroController`** bên phải: khung cắt 2 góc (`clip-corner`), nhãn "PS5 // PRO GEAR", hình tay cầm vẽ bằng SVG trôi lên xuống (`animate-float`). SVG dùng màu theme (`var(--color-brand-500)`…), không viết cứng mã màu. Hình chỉ để trang trí nên có `aria-hidden`.
+- Hai **quầng sáng mờ** phía sau (cam và đỏ).
+
+**Props**
+- `stats?: HeroStat[]`: số liệu do **trang ghép** tính rồi truyền vào, mỗi mục `{ value, label }`. `ShopHero` tự thêm "Giờ mở cửa" (`hoursLabel`) vào cuối; mục rỗng hoặc bằng "0" thì ẩn.
+- `actions?: ReactNode`: các nút, cũng do trang ghép truyền vào.
+
+**Vì sao số liệu và nút đi qua props?** "57 máy PS5" và "4 chi nhánh" là dữ liệu của feature `branch`, mà `shop` không được import feature khác. Vì vậy `src/pages/HomePage.tsx` (trang ghép, được biết mọi feature) lấy số liệu bằng `useBranchSummary()` của `branch`, rồi truyền vào:
+
+```tsx
+// src/pages/HomePage.tsx (rút gọn)
+const branchSummary = useBranchSummary()   // { count: 4, ps5Total: 57 }
+<ShopHero
+  stats={[{ value: '57', label: 'Máy PS5' }, { value: '4', label: 'Chi nhánh' }]}
+  actions={<><Link to="/games">Xem game</Link><Link to="/branches">Tìm chi nhánh</Link></>}
+/>
+```
+
+Sau hero, trang chủ có mục "Hệ thống chi nhánh" (`<BranchList />` của `branch`). Sau này trang chủ sẽ ghép thêm game, bảng giá, menu…
+
+### 💡 Điểm cần nhớ
+- Hiệu ứng nhiễu và trôi **tự tắt** khi người dùng bật "giảm chuyển động" trong hệ điều hành (`prefers-reduced-motion`).
+- Chưa có feature `game`, nên **chưa có số "Tựa game"** và nút "Xem game" tạm dẫn tới trang 404. Trong code có ghi chú `TODO(game)` ở `HomePage.tsx`.
 
 ---
 
@@ -184,26 +219,26 @@ Trang có đủ **3 trạng thái**:
 ## 📁 File: `routes.tsx`, `index.ts` và chỗ ghép trong `app/`
 
 - **`routes.tsx`**: export `shopOwnerRoutes` (path `shop`), trang **tải lazy**: chỉ tải code khi chủ quán mở trang, khách không phải tải.
-- **`app/routes.tsx`**: route này nằm trong nhóm `<RequireRole role="owner" />` của feature `auth`. Nhân viên mở `/admin/shop` sẽ thấy "Không đủ quyền". Cũng ở file này, `<ShopFooter />` được truyền vào `PublicLayout`.
+- **`app/routes.tsx`**: route này nằm trong nhóm `<RequireRole role="owner" />` của feature `auth`. Nhân viên mở `/admin/shop` sẽ thấy "Không đủ quyền". Cũng ở file này, `<ShopFooter />` (prop `footer`) và menu `PUBLIC_NAV` (prop `navItems`) được truyền vào `PublicLayout`.
 - **`app/AdminRoot.tsx`**: menu quản trị có mục "Thông tin quán" với `ownerOnly: true`, nên **chỉ chủ quán thấy** mục này.
-- **`index.ts`** chỉ export `ShopFooter`, `ShopHero`, `shopOwnerRoutes` và type `Shop`. Service và hook không export, vì không ai ngoài feature cần.
+- **`index.ts`** export `ShopFooter`, `ShopHero` (kèm type `HeroStat`), `useShop`, `shopOwnerRoutes` và type `Shop`. `useShop` được export vì trang ghép cần đọc thông tin quán (Facebook dự phòng cho chi nhánh). Service và các hook còn lại không export, vì không ai ngoài feature cần.
 - Mã lỗi `SHOP_001` được thêm vào `shared/utils/error-messages.ts`.
 
 ---
 
 ## 🔗 Liên kết
 
-- **Được dùng bởi:** `src/app/routes.tsx` (footer, route owner), `src/app/AdminRoot.tsx` (menu), `src/pages/HomePage.tsx` (hero).
+- **Được dùng bởi:** `src/app/routes.tsx` (footer, route owner), `src/app/AdminRoot.tsx` (menu), `src/pages/HomePage.tsx` (hero + `useShop`), `src/pages/BranchesPage.tsx` (`useShop` cho Facebook dự phòng).
 - **Gọi tới:** `shared/services/api/http.ts` → backend `/api/v1/shop`.
 - **Dùng của feature khác:** `RequireRole` (từ `auth`, ghép ở `app/`); `Button`, `TextField`, `TextAreaField`, `FormAlert`, `applyServerErrors` (từ `shared`).
-- **Tài liệu:** `frontend/src/features/shop/context.md`; `FE-ARCHITECTURE.md` mục 3 (giải phẫu feature), mục 6 (routing), mục 9 (shared hay feature).
+- **Tài liệu:** `frontend/src/features/shop/context.md`; `FE-ARCHITECTURE.md` mục 3 (giải phẫu feature), mục 6 (routing), mục 9 (shared hay feature), mục 10 (theme neon: màu, font, hiệu ứng).
 
 ## 💡 Điểm cần nhớ (cả feature)
 - Một query key `['shop']` cho cả footer, hero và form. Sửa xong thì invalidate, và mọi nơi tự cập nhật.
 - Lỗi ở trang công khai **không làm vỡ trang**: footer và hero luôn có bản dự phòng.
 - Form: ô trống là `''`, gửi đi thành `null`; lỗi server gán vào đúng ô.
-- `shared` không import feature: footer được "cắm" vào layout qua prop từ `app/routes.tsx`.
-- Chưa có: test tự động riêng cho `shop` (`/fe-test shop`). Giao diện chưa được kiểm tra bằng mắt trên trình duyệt.
+- `shared` không import feature: footer (và menu) được "cắm" vào layout qua prop từ `app/routes.tsx`. Feature cũng không import nhau: số liệu chi nhánh vào hero qua props, do trang ghép ở `src/pages/` truyền.
+- Chưa có: test tự động riêng cho `shop` (`/fe-test shop`). Giao diện đã đối chiếu với prototype bằng ảnh chụp tự động, nhưng chưa thử tay hiệu ứng rê chuột trên trình duyệt thật.
 
 ---
 

@@ -1,17 +1,155 @@
 @import 'tailwindcss';
 
-/* Token màu chủ đạo cam: dùng class text-brand-500, bg-brand-600..., không hardcode mã màu */
+/*
+ * Theme "neon cam" lấy từ bản prototype (fight-station/index.html).
+ * Dùng class Tailwind sinh từ token: text-brand-500, bg-void, bg-card, text-ink, text-muted,
+ * font-display, font-mono... Không hardcode mã màu trong component.
+ */
 @theme {
-  --color-brand-50: #fff7ed;
-  --color-brand-100: #ffedd5;
-  --color-brand-200: #fed7aa;
-  --color-brand-300: #fdba74;
-  --color-brand-400: #fb923c;
-  --color-brand-500: #f97316;
-  --color-brand-600: #ea580c;
-  --color-brand-700: #c2410c;
-  --color-brand-800: #9a3412;
-  --color-brand-900: #7c2d12;
+  /* Cam neon chủ đạo: brand-500 = #ff6a00 */
+  --color-brand-50: #fff4eb;
+  --color-brand-100: #ffe3cc;
+  --color-brand-200: #ffc499;
+  --color-brand-300: #ffa366;
+  --color-brand-400: #ff8533;
+  --color-brand-500: #ff6a00;
+  --color-brand-600: #e65c00;
+  --color-brand-700: #b84a00;
+  --color-brand-800: #8a3800;
+  --color-brand-900: #5c2500;
+
+  /* Màu phụ của theme */
+  --color-neon-red: #ff3b1f;
+  --color-neon-amber: #ffa200;
+  --color-neon-gold: #ffc400;
+
+  /* Nền và chữ */
+  --color-void: #0a0605;
+  --color-dark: #130b06;
+  --color-card: #190f08;
+  --color-ink: #fff3e8;
+  --color-muted: #a89080;
+
+  /* Font: chữ chính và tiêu đề có tiếng Việt; Orbitron chỉ cho logo và con số (không có dấu) */
+  --font-sans: 'Chakra Petch', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Orbitron', 'Chakra Petch', ui-sans-serif, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Hiệu ứng hero: chữ nhiễu màu (glitch), tay cầm trôi lên xuống (float) */
+  --animate-glitch: glitch 3s infinite;
+  --animate-float: float 4s ease-in-out infinite;
+
+  @keyframes glitch {
+    0%,
+    90%,
+    100% {
+      text-shadow:
+        3px 0 var(--color-neon-red),
+        -3px 0 var(--color-brand-500);
+      transform: translate(0, 0);
+    }
+    92% {
+      text-shadow:
+        -3px 0 var(--color-neon-red),
+        3px 0 var(--color-brand-500);
+      transform: translate(2px, 0);
+    }
+    94% {
+      text-shadow:
+        3px 0 var(--color-neon-gold),
+        -3px 0 var(--color-neon-amber);
+      transform: translate(-2px, 0);
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-15px);
+    }
+  }
+}
+
+/* Chữ rỗng chỉ có viền cam (chữ "STATION" ở hero) */
+@utility text-outline {
+  color: transparent;
+  -webkit-text-stroke: 2px var(--color-brand-500);
+}
+
+/* Khung cắt góc trên-trái và dưới-phải (khung tay cầm ở hero) */
+@utility clip-corner {
+  clip-path: polygon(
+    20px 0,
+    100% 0,
+    100% calc(100% - 20px),
+    calc(100% - 20px) 100%,
+    0 100%,
+    0 20px
+  );
+}
+
+/* Nút vát góc lớn (nút chính ở hero) */
+@utility clip-skew-lg {
+  clip-path: polygon(15px 0, 100% 0, calc(100% - 15px) 100%, 0 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-glitch,
+  .animate-float {
+    animation: none;
+  }
+}
+
+/* Chữ phát sáng (logo, phần nhấn của tiêu đề) */
+@utility text-glow {
+  text-shadow: 0 0 15px rgb(255 106 0 / 0.5);
+}
+
+@utility text-glow-strong {
+  text-shadow:
+    0 0 10px var(--color-brand-500),
+    0 0 20px rgb(255 106 0 / 0.5);
+}
+
+/* Nút vát hai góc (nút "Liên hệ" trên header) */
+@utility clip-skew {
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+}
+
+/*
+ * Nền lưới + vạch quét của trang khách. Gắn vào khung có `isolate`: hai lớp giả nằm sau nội dung
+ * (z-index -1 trong stacking context của khung) và không bắt chuột.
+ */
+@utility neon-backdrop {
+  &::before,
+  &::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  &::before {
+    background-image:
+      linear-gradient(rgb(255 106 0 / 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255 106 0 / 0.06) 1px, transparent 1px);
+    background-size: 50px 50px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+  }
+
+  &::after {
+    background: repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      rgb(255 106 0 / 0.02) 1px,
+      transparent 2px,
+      transparent 4px
+    );
+  }
 }
 
 @layer base {
@@ -20,6 +158,6 @@
   }
 
   body {
-    @apply min-h-screen bg-neutral-950 font-sans text-neutral-100 antialiased;
+    @apply min-h-screen bg-void font-sans text-ink antialiased;
   }
 }

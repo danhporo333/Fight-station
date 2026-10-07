@@ -1,29 +1,31 @@
 import type { ReactNode } from 'react'
-import { Link, Outlet } from 'react-router'
+import { Outlet } from 'react-router'
+
+import { PublicHeader, type PublicNavItem } from './PublicHeader'
+
+export type { PublicNavItem } from './PublicHeader'
 
 export interface PublicLayoutProps {
-  /** Footer; app/routes.tsx truyền vào (shared không import features). Không truyền thì hiện dòng bản quyền. */
+  /** Menu trên header; app/routes.tsx truyền vào (shared không import features) */
+  navItems?: PublicNavItem[]
+  /** Nút nổi bật bên phải header (vd "Liên hệ") */
+  cta?: PublicNavItem
+  /** Footer; app/routes.tsx truyền vào. Không truyền thì hiện dòng bản quyền. */
   footer?: ReactNode
 }
 
-/** Khung trang cho khách: header, nội dung trang con (<Outlet />), footer. Menu điều hướng thêm khi có feature. */
-export function PublicLayout({ footer }: PublicLayoutProps) {
+/** Khung trang cho khách: nền lưới neon, header + menu, nội dung trang con (<Outlet />), footer */
+export function PublicLayout({ navItems = [], cta, footer }: PublicLayoutProps) {
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="border-b border-neutral-800 bg-neutral-950/80 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center px-4">
-          <Link to="/" className="text-xl font-black tracking-tight text-brand-500">
-            FIGHT STATION
-          </Link>
-        </div>
-      </header>
+    <div className="neon-backdrop isolate flex min-h-screen flex-col">
+      <PublicHeader navItems={navItems} cta={cta} />
 
       <main className="flex-1">
         <Outlet />
       </main>
 
       {footer ?? (
-        <footer className="border-t border-neutral-800 py-6 text-center text-sm text-neutral-500">
+        <footer className="border-t border-brand-500/20 py-6 text-center text-sm text-muted">
           © {new Date().getFullYear()} Fight Station
         </footer>
       )}

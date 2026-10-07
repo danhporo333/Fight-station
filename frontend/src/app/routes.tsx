@@ -1,21 +1,36 @@
 import { createBrowserRouter, Navigate } from 'react-router'
 
 import { authAdminRoutes, authPublicRoutes, RequireRole } from '@/features/auth'
+import { branchOwnerRoutes } from '@/features/branch'
 import { ShopFooter, shopOwnerRoutes } from '@/features/shop'
 import { HomePage } from '@/pages/HomePage'
 import { ErrorFallback } from '@/shared/components/ErrorBoundary'
-import { PublicLayout } from '@/shared/components/layout/PublicLayout'
+import { PublicLayout, type PublicNavItem } from '@/shared/components/layout/PublicLayout'
 import { NotFoundPage } from '@/shared/components/NotFoundPage'
+
+// Menu trang khách: mỗi feature có trang công khai thì thêm một dòng
+const PUBLIC_NAV: PublicNavItem[] = [
+  { to: '/', label: 'Trang chủ' },
+  { to: '/branches', label: 'Chi nhánh' },
+]
+
+// Nút nổi bật bên phải header: khách muốn liên hệ thì xem chi nhánh (hotline, Facebook, Zalo)
+const PUBLIC_CTA: PublicNavItem = { to: '/branches', label: 'Liên hệ' }
 
 // Chỉ ghép route. Mỗi feature tự khai báo RouteObject[] trong features/[x]/routes.tsx rồi thêm vào đây.
 export const router = createBrowserRouter([
   {
-    element: <PublicLayout footer={<ShopFooter />} />,
+    element: <PublicLayout navItems={PUBLIC_NAV} cta={PUBLIC_CTA} footer={<ShopFooter />} />,
     errorElement: <ErrorFallback />,
     children: [
       { index: true, element: <HomePage /> },
       ...authPublicRoutes,
-      // ...publicRoutes của feature (menu, pricing, branches, promotions)
+      // Trang ghép nhiều feature nằm ở src/pages
+      {
+        path: 'branches',
+        lazy: async () => ({ Component: (await import('@/pages/BranchesPage')).BranchesPage }),
+      },
+      // ...publicRoutes của feature (menu, pricing, promotions)
       { path: '*', element: <NotFoundPage /> },
     ],
   },
@@ -34,7 +49,8 @@ export const router = createBrowserRouter([
         element: <RequireRole role="owner" />,
         children: [
           ...shopOwnerRoutes,
-          // ...branchOwnerRoutes, pricePlanOwnerRoutes
+          ...branchOwnerRoutes,
+          // ...pricePlanOwnerRoutes
         ],
       },
     ],

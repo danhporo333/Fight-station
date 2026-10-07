@@ -18,7 +18,7 @@ export function ShopSocialLinks({ shop }: ShopSocialLinksProps) {
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block rounded-full border border-neutral-700 px-3 py-1 text-xs font-semibold text-neutral-300 transition-colors hover:border-brand-500 hover:text-brand-400"
+            className="inline-block border border-brand-500/40 px-3 py-1 text-xs font-semibold tracking-wider text-ink uppercase transition-colors hover:border-brand-500 hover:text-brand-500"
           >
             {link.label}
           </a>

@@ -14,15 +14,17 @@ export function ShopFooter() {
   const { data: shop } = useShop()
 
   return (
-    <footer className="border-t border-neutral-800 bg-neutral-950">
+    <footer className="border-t border-brand-500/20 bg-dark">
       {shop && (
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2">
           <div className="flex flex-col gap-3">
-            <p className="text-lg font-black tracking-tight text-brand-500">{shop.name}</p>
+            <p className="text-glow font-display text-lg font-black tracking-[0.1em] text-brand-500">
+              {shop.name}
+            </p>
             <ShopSocialLinks shop={shop} />
           </div>
 
-          <ul className="flex flex-col gap-2 text-sm text-neutral-300">
+          <ul className="flex flex-col gap-2 text-sm text-ink">
             {shop.hotline && (
               <li className="flex items-center gap-2">
                 <Phone aria-hidden="true" className="size-4 text-brand-500" />
@@ -49,7 +51,7 @@ export function ShopFooter() {
         </div>
       )}
 
-      <p className="border-t border-neutral-900 py-4 text-center text-sm text-neutral-500">
+      <p className="border-t border-brand-500/10 py-4 text-center font-mono text-xs text-muted">
         © {YEAR} {shop?.name ?? 'Fight Station'}
       </p>
     </footer>

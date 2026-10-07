@@ -4,6 +4,7 @@ import { AdminLayout, type AdminNavItem } from '@/shared/components/layout/Admin
 // Menu quản trị: mỗi feature có trang admin thì thêm một dòng (ownerOnly cho trang chỉ owner vào)
 const ADMIN_NAV: AdminNavItem[] = [
   { to: '/admin/shop', label: 'Thông tin quán', ownerOnly: true },
+  { to: '/admin/branches', label: 'Chi nhánh', ownerOnly: true },
   { to: '/admin/account', label: 'Tài khoản' },
 ]
 

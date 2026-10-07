@@ -4,7 +4,7 @@ Website cho quán chơi game **PS5**: khách xem thông tin quán, danh sách ga
 
 Giao diện tông **cam**, hiện đại, dùng tốt trên điện thoại.
 
-> **Trạng thái:** đang phát triển. Đã xong khung dự án và tính năng **đăng nhập quản trị** và **thông tin quán** (backend + frontend). Các tính năng nội dung đang được làm lần lượt (xem [Lộ trình](#lộ-trình)).
+> **Trạng thái:** đang phát triển. Đã xong khung dự án và tính năng **đăng nhập quản trị**, **thông tin quán** và **chi nhánh** (backend + frontend). Các tính năng nội dung đang được làm lần lượt (xem [Lộ trình](#lộ-trình)).
 
 ---
 
@@ -14,7 +14,7 @@ Giao diện tông **cam**, hiện đại, dùng tốt trên điện thoại.
 |---|---|---|---|
 | Đăng nhập, phân quyền chủ quán / nhân viên, đổi mật khẩu | — | ✔ | ✅ Xong |
 | Thông tin quán: giờ mở cửa, hotline, mạng xã hội | ✔ | Chủ quán sửa | ✅ Xong |
-| Chi nhánh: địa chỉ, bản đồ, số máy PS5, phòng VIP | ✔ | Chủ quán sửa | ⏳ Chưa làm |
+| Chi nhánh: địa chỉ, bản đồ, số máy PS5, phòng VIP | ✔ | Chủ quán sửa | ✅ Xong |
 | Game: lọc theo thể loại, chi nhánh, tìm theo tên | ✔ | ✔ | ⏳ Chưa làm |
 | Bảng giá giờ chơi theo gói | ✔ | Chủ quán sửa | ⏳ Chưa làm |
 | Menu đồ ăn, nước uống (có trạng thái "tạm hết") | ✔ | ✔ | ⏳ Chưa làm |
@@ -184,7 +184,7 @@ Dự án dùng [Claude Code](https://claude.com/claude-code) để hỗ trợ ph
 - [x] Khung dự án backend và frontend
 - [x] Đăng nhập, phân quyền, đổi mật khẩu
 - [x] Thông tin quán (`shop`)
-- [ ] Chi nhánh (`branch`)
+- [x] Chi nhánh (`branch`)
 - [ ] Game và thể loại (`game`)
 - [ ] Bảng giá (`price-plan`)
 - [ ] Menu đồ ăn, nước uống (`menu`)

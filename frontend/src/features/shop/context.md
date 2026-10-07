@@ -27,11 +27,11 @@ Phần công khai không có trang riêng:
 | `services/` | `getShop`, `updateShop` |
 | `hooks/` | `shop.keys.ts`, `useShop`, `useUpdateShop` |
 | `utils/` | `getSocialLinks`, `socialLabel`, `SOCIAL_KEYS`, `toShopFormValues`, `toShopPayload`, `telHref` |
-| `components/` | `ShopFooter`, `ShopHero`, `ShopSocialLinks`, `ShopForm` |
+| `components/` | `ShopFooter`, `ShopHero`, `HeroController` (hình tay cầm SVG của hero), `ShopSocialLinks`, `ShopForm` |
 | `pages/` | `AdminShopPage` |
 
 ## Public API (`index.ts`)
-- `ShopFooter`, `ShopHero`, `shopOwnerRoutes`, type `Shop`.
+- `ShopFooter`, `ShopHero` (props `stats?: HeroStat[]`, `actions?: ReactNode`), type `HeroStat`, `useShop` (trang ghép đọc thông tin quán, vd Facebook dự phòng cho thẻ chi nhánh), `shopOwnerRoutes`, type `Shop`.
 
 ## Query key
 - `['shop']` (`shopKeys.all`). `useUpdateShop` thành công → `invalidateQueries({ queryKey: ['shop'] })`, footer và hero tự cập nhật.
@@ -44,6 +44,7 @@ Phần công khai không có trang riêng:
 - Hotline bấm được (`tel:`, bỏ khoảng trắng và dấu chấm); email là `mailto:`.
 
 ## Ghi chú UI
+- `ShopHero` theo prototype: badge "System online — Ready player one" (chấm nhấp nháy), tên quán tách chữ đầu (trắng, hiệu ứng `animate-glitch`) và phần còn lại (chữ viền `text-outline`), tagline, `actions` do trang ghép truyền (trang chủ: "Xem game", "Tìm chi nhánh"), hàng số liệu = `stats` truyền vào + "Giờ mở cửa" từ `hoursLabel` (giá trị rỗng hoặc "0" thì ẩn), khung `HeroController` (cắt góc, tay cầm trôi `animate-float`), hai quầng sáng mờ phía sau. Số liệu của feature khác truyền qua props nên `shop` không import feature khác. Tắt hiệu ứng khi người dùng bật giảm chuyển động (`prefers-reduced-motion`).
 - Lỗi `GET /shop` (kể cả `SHOP_001` chưa seed) ở trang công khai: footer chỉ hiện dòng bản quyền, hero chỉ hiện tên mặc định "Fight Station"; không làm vỡ trang.
 - `AdminShopPage` gặp `SHOP_001`: hiện thông báo cần chạy `npx prisma db seed` và nút "Thử lại" thay cho form.
 - Link mạng xã hội của `shop` là giá trị dự phòng cho chi nhánh để trống `facebookUrl` / `zaloUrl` (dùng khi làm `branch`).

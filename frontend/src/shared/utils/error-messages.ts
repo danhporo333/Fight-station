@@ -17,6 +17,8 @@ export const ERROR_MESSAGES: Record<string, string> = {
   AUTH_005: 'Bạn không đủ quyền thực hiện thao tác này',
 
   SHOP_001: 'Chưa có dữ liệu quán',
+
+  BRANCH_001: 'Không tìm thấy chi nhánh (có thể đã bị xóa)',
 }
 
 /** Thông báo cho người dùng từ một lỗi bất kỳ (thường là ApiError) */

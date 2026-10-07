@@ -5,7 +5,7 @@
 | **Phía** | FE (frontend) |
 | **Chế độ** | `code` |
 | **Target** | `game` |
-| **Ngày viết** | 2026-10-07 (cập nhật: thêm ô tìm kiếm ở trang quản trị game) |
+| **Ngày viết** | 2026-10-07 (cập nhật: ô tìm kiếm ở trang quản trị; game có nhiều thể loại, chọn bằng ô tick) |
 | **Tài liệu đã đọc** | `frontend/src/features/game/context.md` (trạng thái ✅ Đã cài đặt 2026-10-07), `frontend/docs/FE-ARCHITECTURE.md` (mục 3, 4, 5, 6, 9, 10) |
 
 > Bài viết dựa trên tài liệu tại ngày viết. Nếu code `game` thay đổi sau đó, đối chiếu lại với `context.md`.
@@ -42,10 +42,11 @@ component → hook (TanStack Query) → service → http.ts → API /games, /gam
 ## 📁 File: `types/game.types.ts` và `types/game.schema.ts`
 
 ### Phân tích
-- **`Game`** (danh sách) và **`GameDetail`** (chi tiết, thêm `branchIds`). `branchIds: null` nghĩa là **có ở mọi chi nhánh**; mảng `[1, 3]` là chỉ những chi nhánh đó.
+- **`Game`** (danh sách) và **`GameDetail`** (chi tiết, thêm `branchIds`). Thể loại là **mảng** `categories: [{ id, name }, …]` (1–5 thể loại, đã xếp theo thứ tự của thể loại), vì một game có thể vừa "Hành Động" vừa "Co-op". `branchIds: null` nghĩa là **có ở mọi chi nhánh**; mảng `[1, 3]` là chỉ những chi nhánh đó.
 - **`AccentColor`** = `'orange' | 'red' | 'amber' | 'gold'`.
 - **`BranchOption`** = `{ id, name, isActive }`: chi nhánh để tick trong form. Kiểu này **khai báo riêng trong `game`**, không lấy kiểu `Branch` của feature `branch` (vì không được import chéo).
-- **`gameFormSchema`**: mọi ô là chuỗi (ô chọn thể loại cũng trả chuỗi), cộng thêm 2 trường **chỉ có ở form**:
+- **`GamePayload`** gửi `gameCategoryIds: number[]`.
+- **`gameFormSchema`**: mọi ô là chuỗi. `gameCategoryIds: string[]` (giá trị các ô tick thể loại) phải có **1–5** phần tử: thiếu → "Chọn ít nhất 1 thể loại", thừa → "Tối đa 5 thể loại", khớp luật backend. Cộng thêm 2 trường **chỉ có ở form**:
   - `allBranches: boolean`: ô "Có ở mọi chi nhánh".
   - `branchIds: string[]`: giá trị các ô tick.
   - Luật thêm: bỏ "mọi chi nhánh" mà không tick ô nào → lỗi ngay ở ô chi nhánh: *"Chọn ít nhất 1 chi nhánh, hoặc chọn 'Có ở mọi chi nhánh'"*. Khớp với việc backend từ chối `branchIds: []`.
@@ -71,7 +72,7 @@ Mẹo đi kèm: query key của danh sách này là `['branches', { limit: 100, 
 | `useGames(query)` | Danh sách, mặc định `limit: 100`; trang chủ truyền `limit: 8`. Có `placeholderData: keepPreviousData`: đổi bộ lọc hay từ khóa thì **giữ danh sách cũ trên màn hình** trong lúc tải danh sách mới, không nháy về khung xám |
 | `useGameCount()` | Gọi `/games?limit=1`, chỉ đọc `meta.total`, ra số "Tựa game" ở hero. Không tải 100 game chỉ để đếm |
 | `useGame(id, includeInactive)` | Một game kèm `branchIds` (trang sửa) |
-| `useGameCategories(query)` | Thể loại cho bộ lọc, ô chọn trong form và trang quản trị |
+| `useGameCategories(query)` | Thể loại cho bộ lọc, ô tick trong form và trang quản trị |
 | `useCreate/Update/DeleteGame`, `useCreate/Update/DeleteGameCategory` | Ghi dữ liệu, xong thì gọi `useInvalidateGames` |
 | `useInvalidateGames` | Làm mới **cả** `['games']`, `['game']` và `['game-categories']` |
 | `useBranchOptions` | Danh sách chi nhánh cho form |
@@ -87,7 +88,7 @@ Mẹo đi kèm: query key của danh sách này là `['branches', { limit: 100, 
 **`GameCard`** (theo prototype):
 - **Poster tỉ lệ 3:4.** Có `posterUrl` thì hiện ảnh (`alt`, `loading="lazy"`, kích thước cố định để trang không nhảy). **Không có ảnh** thì hiện **tên game chữ to, phát sáng**, màu theo `accentColor`: Tekken 8 đỏ, Street Fighter 6 cam, NBA 2K26 vàng…
 - Màu đi qua `utils/accent.ts` (`ACCENT_TEXT_CLASS.red` → `text-neon-red`), không viết cứng mã màu trong component.
-- Dưới poster: tên in hoa, thể loại (cam) và số người chơi.
+- Dưới poster: tên in hoa, **các thể loại** nối bằng dấu chấm giữa (cam, vd "Hành Động · Co-op") và số người chơi.
 
 **`GameList`**:
 - **Props:** `query` (bộ lọc), `emptyMessage` (chữ khi không có game).
@@ -128,7 +129,7 @@ Form thêm và sửa game, dùng chung cho 2 trang.
 ### Phân tích
 
 **4 nhóm ô:**
-1. **Thông tin game:** tên, thể loại (`SelectField`, liệt kê cả thể loại đang ẩn kèm chữ "(đang ẩn)"), số người chơi, mô tả.
+1. **Thông tin game:** tên, **`GameCategoriesField`** (các ô tick thể loại, chọn 1–5; liệt kê cả thể loại đang ẩn kèm chữ "(đang ẩn)", để sửa game cũ không mất thể loại), số người chơi, mô tả.
 2. **Hình ảnh:** link poster, và **`AccentColorField`**: 4 ô màu tròn (thật ra là nút radio ẩn đi). Ô đang chọn có viền trắng; mỗi ô có chữ "Cam", "Đỏ"… cho trình đọc màn hình.
 3. **`GameBranchesField`:**
    - Ô "**Có ở mọi chi nhánh**" (mặc định), ghi chú "gồm cả chi nhánh mở sau này".
@@ -138,16 +139,19 @@ Form thêm và sửa game, dùng chung cho 2 trang.
 
 **Chuyển dữ liệu (`utils/game.utils.ts`):**
 - **`toGamePayload`:** form → API.
+  - `gameCategoryIds: ['4', '5']` → `[4, 5]`.
   - `allBranches: true` → `branchIds: null`; ngược lại `['3','1']` → `[3, 1]`.
   - Ô trống → `null`; chuỗi số → số.
 - **`toGameFormValues`:** API → form.
+  - `categories` → tick sẵn đúng các ô thể loại.
   - `branchIds: null` → tick sẵn "mọi chi nhánh".
   - `[1, 4]` → bỏ tick "mọi chi nhánh" và tick sẵn chi nhánh 1, 4.
 
 **Lỗi (`utils/game-form-errors.ts` → `applyGameErrors`):**
 - `GAME_002` (trùng tên) → hiện ngay **dưới ô tên**: "Tên game đã tồn tại".
 - Lỗi validate có `details` → đúng ô.
-- Còn lại (`GAME_003` thể loại vừa bị xóa, `GAME_006` chi nhánh vừa bị xóa) → khung đỏ đầu form.
+- `GAME_003` (có thể loại vừa bị người khác xóa) → hiện ngay **dưới các ô thể loại**: "Có thể loại vừa bị xóa, hãy tải lại trang và chọn lại".
+- Còn lại (`GAME_006` chi nhánh vừa bị xóa…) → khung đỏ đầu form.
 
 ### 📏 Quy tắc dự án liên quan
 - Component ≤ 150 dòng. `GameForm` (115 dòng) tách 2 phần con để không vượt giới hạn và để mỗi phần dễ đọc.
@@ -166,7 +170,7 @@ Form thêm và sửa game, dùng chung cho 2 trang.
 
 **Nút Xóa thể loại bị khóa khi còn game**, rê chuột vào thì có gợi ý "Còn N game, chuyển hoặc xóa game trước". Giao diện chặn trước cho dễ hiểu, backend vẫn chặn thật bằng `GAME_005`.
 
-Thể loại đang ẩn ghi rõ **"Đang ẩn (ẩn cả game)"**, để chủ quán biết ẩn thể loại sẽ làm các game trong đó biến mất khỏi trang khách.
+Thể loại đang ẩn ghi **"Đang ẩn (game chỉ có thể loại này sẽ ẩn theo)"**. Từ khi game có nhiều thể loại, game chỉ biến mất khỏi trang khách khi **mọi** thể loại của nó đều ẩn: ẩn "Co-op" thì "A Way Out" (chỉ Co-op) ẩn theo, còn "It Takes Two" (Co-op + Hành Động) vẫn hiện.
 
 ---
 
@@ -181,7 +185,7 @@ Thể loại đang ẩn ghi rõ **"Đang ẩn (ẩn cả game)"**, để chủ q
   - Mục "Kho game" có `<GameList query={{ limit: 8 }} />` và nút "Xem tất cả game".
 - **`index.ts`** export: `GameList`, `GameFilters`, `useGameCount`, `gameAdminRoutes`, `GAME_SEARCH_PARAMS`, `readIdParam`, type `Game`, `GameListQuery`.
 - `error-messages.ts` có thông báo tiếng Việt cho `GAME_001` → `GAME_006`.
-- `shared/components/ui/SelectField.tsx`: ô chọn dùng chung, cùng giao diện với `TextField`.
+- `shared/components/ui/SelectField.tsx`: ô chọn dùng chung, cùng giao diện với `TextField`. Hiện **chưa nơi nào dùng** (form game đã đổi sang ô tick), giữ lại cho `menu`, `promotion`.
 
 ---
 
@@ -190,14 +194,15 @@ Thể loại đang ẩn ghi rõ **"Đang ẩn (ẩn cả game)"**, để chủ q
 - **Được dùng bởi:** `src/pages/GamesPage.tsx`, `src/pages/HomePage.tsx`, `src/app/routes.tsx`, `src/app/AdminRoot.tsx`.
 - **Gọi tới:** `shared/services/api/http.ts` → `/api/v1/games`, `/api/v1/game-categories`, `/api/v1/branches`.
 - **Ghép với:** `BranchPicker`, `BRANCH_SEARCH_PARAM` (feature `branch`, chỉ ở trang ghép).
-- **Dùng từ `shared`:** `Button`, `TextField`, `TextAreaField`, `SelectField`, `CheckboxField`, `FormAlert`, `ConfirmDialog`, `SectionHeading`, `useDebounce`, `applyServerErrors`, `getErrorMessage`.
+- **Dùng từ `shared`:** `Button`, `TextField`, `TextAreaField`, `CheckboxField`, `FormAlert`, `ConfirmDialog`, `SectionHeading`, `useDebounce`, `applyServerErrors`, `getErrorMessage`.
 - **Tài liệu:** `frontend/src/features/game/context.md`; `FE-ARCHITECTURE.md` mục 3, 4 (luồng dữ liệu), 5 (giao tiếp qua URL), 6 (routing), 9, 10 (theme neon).
 
 ## 💡 Điểm cần nhớ (cả feature)
 - **Bộ lọc nằm trên URL** (`?branch=&category=&q=`); trang ghép đọc URL rồi truyền vào `GameList`.
 - **"Mọi chi nhánh"** là ô tick trong form, gửi lên thành `branchIds: null`.
 - Mọi thao tác ghi làm mới cả game, chi tiết và thể loại. Danh sách chi nhánh dùng chung cache với feature `branch` nhờ trùng query key.
-- `GAME_002` hiện ngay dưới ô tên; nút xóa thể loại còn game bị khóa sẵn.
+- Một game có **1–5 thể loại** (ô tick); thẻ ghi "Hành Động · Co-op", bảng quản trị ghi "Hành Động, Co-op".
+- `GAME_002` hiện ngay dưới ô tên, `GAME_003` dưới ô thể loại; nút xóa thể loại còn game bị khóa sẵn.
 - Trang quản trị game tìm được theo tên (`?q=` trên URL); đổi từ khóa không làm bảng nháy nhờ `keepPreviousData`.
 - Chưa có: test tự động (`/fe-test game`), lọc theo thể loại ở bảng quản trị, upload ảnh poster (chỉ nhập link).
 

@@ -5,7 +5,7 @@ import { disconnectDatabase, prisma } from '@/core/database/prisma';
 import { logger } from '@/core/logger';
 import { hashPassword } from '@/shared/utils/password';
 
-import { seedShop as shopData } from './seed-data';
+import { seedBranches as branchData, seedShop as shopData } from './seed-data';
 
 /** Dữ liệu mẫu dùng '' cho ô trống; DB lưu null (không lưu chuỗi rỗng) */
 function emptyToNull(value: string): string | null {
@@ -60,9 +60,36 @@ async function seedShop(): Promise<void> {
   logger.info('seed.shop_created');
 }
 
+/** Chi nhánh mẫu. Bảng không có cột UNIQUE nên chỉ seed khi bảng đang trống. */
+async function seedBranches(): Promise<void> {
+  if ((await prisma.branch.count()) > 0) {
+    logger.info('seed.branches_exist');
+    return;
+  }
+
+  await prisma.branch.createMany({
+    data: branchData.map((branch, index) => ({
+      name: branch.name,
+      address: branch.address,
+      phone: emptyToNull(branch.phone),
+      openHours: emptyToNull(branch.hours),
+      ps5Count: branch.ps5,
+      vipRoomCount: branch.vip,
+      pcRoomCount: branch.pcRoom ?? 0,
+      areaM2: branch.area,
+      mapUrl: emptyToNull(branch.mapUrl),
+      facebookUrl: emptyToNull(branch.facebook),
+      zaloUrl: emptyToNull(branch.zalo),
+      sortOrder: index,
+    })),
+  });
+  logger.info({ count: branchData.length }, 'seed.branches_created');
+}
+
 async function main(): Promise<void> {
   await seedOwner();
   await seedShop();
+  await seedBranches();
 }
 
 main()

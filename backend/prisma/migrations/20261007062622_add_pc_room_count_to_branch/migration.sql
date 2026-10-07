@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `branch` ADD COLUMN `pc_room_count` SMALLINT UNSIGNED NOT NULL DEFAULT 0;

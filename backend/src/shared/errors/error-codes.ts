@@ -16,6 +16,9 @@ export const ErrorCode = {
 
   // shop
   SHOP_NOT_FOUND: 'SHOP_001',
+
+  // branch
+  BRANCH_NOT_FOUND: 'BRANCH_001',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];

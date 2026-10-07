@@ -64,6 +64,8 @@ export interface SeedBranch {
   hours: string;
   ps5: number;
   vip: number;
+  /** Số phòng PC; chỉ chi nhánh có phòng PC mới khai báo */
+  pcRoom?: number;
   area: number;
   mapUrl: string;
   facebook: string;
@@ -71,7 +73,7 @@ export interface SeedBranch {
 }
 
 export const seedShop: SeedShop = {
-  name: 'FIGHT STATION',
+  name: 'FIGHT STATION Gaming',
   tagline:
     'Đấu trường PS5 hàng đầu — nơi anh em hội tụ, chinh chiến và bùng cháy. Game bản quyền, ghế gaming cao cấp, đồ ăn nước uống đầy đủ.',
   hoursLabel: '24/7',
@@ -297,6 +299,7 @@ export const seedBranches: SeedBranch[] = [
     hours: '09:00 — 24:00',
     ps5: 12,
     vip: 2,
+    pcRoom: 1,
     area: 85,
     mapUrl: '',
     facebook: '',

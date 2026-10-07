@@ -5,6 +5,12 @@ import helmet from 'helmet';
 import { config } from '@/config';
 import { prisma, type Database } from '@/core/database/prisma';
 import { AuthController, AuthRepository, AuthService, createAuthRouter } from '@/features/auth';
+import {
+  BranchController,
+  BranchRepository,
+  BranchService,
+  createBranchRouter,
+} from '@/features/branch';
 import { createShopRouter, ShopController, ShopRepository, ShopService } from '@/features/shop';
 import {
   apiRateLimit,
@@ -27,6 +33,10 @@ export function createApp(db: Database = prisma): Express {
 
   const shopController = new ShopController(new ShopService(new ShopRepository(db)));
 
+  // branch: branchService sau này truyền vào GameService (thỏa BranchLookup)
+  const branchService = new BranchService(new BranchRepository(db));
+  const branchController = new BranchController(branchService);
+
   const app = express();
   app.disable('x-powered-by');
 
@@ -44,6 +54,7 @@ export function createApp(db: Database = prisma): Express {
   const v1 = express.Router();
   v1.use('/auth', createAuthRouter(authController, guards));
   v1.use('/shop', createShopRouter(shopController, guards));
+  v1.use('/branches', createBranchRouter(branchController, guards));
   app.use(config.api.prefix, apiRateLimit, v1);
 
   app.use(notFound);

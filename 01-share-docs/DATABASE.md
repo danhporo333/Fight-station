@@ -41,7 +41,7 @@ Mọi bảng đều có 3 cột chung, **không lặp lại** ở các bảng d�
 | | address | VARCHAR(255) | NOT NULL |
 | | phone | VARCHAR(20) | NULL |
 | | open_hours | VARCHAR(100) | NULL (vd: 09:00 — 24:00) |
-| | ps5_count, vip_room_count | SMALLINT UNSIGNED | NOT NULL, DEFAULT 0 |
+| | ps5_count, vip_room_count, pc_room_count | SMALLINT UNSIGNED | NOT NULL, DEFAULT 0 (`pc_room_count`: số phòng PC, 0 = chi nhánh không có) |
 | | area_m2 | SMALLINT UNSIGNED | NULL |
 | | map_url, facebook_url, zalo_url | VARCHAR(500) | NULL (trống = tự tìm theo địa chỉ / dùng link của `shop` / tạo từ `phone`) |
 | | sort_order | INT | NOT NULL, DEFAULT 0 |

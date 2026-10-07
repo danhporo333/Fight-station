@@ -103,6 +103,7 @@ Feature có nhiều tài nguyên (`game` + `game-category`, `menu-item` + `menu-
 
 **DTO (`*.dto.ts`)**: Zod 4, khớp `API_SPEC.md` và giới hạn cột trong `DATABASE.md`.
 - Chuỗi `.trim()` + `.min/.max` đúng độ dài cột; URL `z.url().max(500)`; tiền `z.number().int().min(0)`; ngày `YYYY-MM-DD`
+- Trường chuỗi dùng sẵn `@/shared/utils/zod-fields`: `requiredText(max)`, `optionalText(max)` (`''` → `null`), `optionalUrl`, `optionalEmail`; body PUT thêm `.refine(...hasAnyField)` để từ chối `{}`
 - Trường tùy chọn `.nullable().optional()` (gửi `null` để xóa giá trị)
 - `update` = `create.partial()` (PUT cập nhật một phần, trường không gửi giữ nguyên)
 - Params: `z.object({ id: z.coerce.number().int().positive() })`

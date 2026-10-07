@@ -5,7 +5,7 @@
 | **Phía** | FE (frontend) |
 | **Chế độ** | `code` |
 | **Target** | `game` |
-| **Ngày viết** | 2026-10-07 (cập nhật: ô tìm kiếm ở trang quản trị; game có nhiều thể loại; `/games` phân trang 8 game/trang) |
+| **Ngày viết** | 2026-10-07 (cập nhật: ô tìm kiếm ở trang quản trị; game có nhiều thể loại; `/games` phân trang 8 game/trang; trang chủ có dải game tự trượt; thẻ game cao bằng nhau) |
 | **Tài liệu đã đọc** | `frontend/src/features/game/context.md` (trạng thái ✅ Đã cài đặt 2026-10-07), `frontend/docs/FE-ARCHITECTURE.md` (mục 3, 4, 5, 6, 9, 10) |
 
 > Bài viết dựa trên tài liệu tại ngày viết. Nếu code `game` thay đổi sau đó, đối chiếu lại với `context.md`.
@@ -16,7 +16,7 @@
 
 | Mặt | Ở đâu | Ai dùng |
 |---|---|---|
-| **Xem game** | Trang `/games` (lọc chi nhánh, thể loại, tìm tên; **8 game mỗi trang**, có mũi tên chuyển trang), mục "Kho game" ở trang chủ (8 game), số "Tựa game" ở hero | Khách |
+| **Xem game** | Trang `/games` (lọc chi nhánh, thể loại, tìm tên; **8 game mỗi trang**, có mũi tên chuyển trang), mục "Kho game" ở trang chủ (**dải game tự trượt sang trái**, tối đa 16 game), số "Tựa game" ở hero | Khách |
 | **Quản lý game** | `/admin/games` (ô tìm theo tên + bảng), `/admin/games/new`, `/admin/games/:id/edit` | Admin (chủ quán và nhân viên) |
 | **Quản lý thể loại** | `/admin/game-categories` | Admin |
 
@@ -34,7 +34,7 @@ component → hook (TanStack Query) → service → http.ts → API /games, /gam
 | `services/` | `game.service.ts` (game + danh sách chi nhánh cho form), `game-category.service.ts` |
 | `hooks/` | 13 hook, mỗi hook một file (danh sách, chi tiết, đếm, thêm/sửa/xóa game và thể loại, danh sách chi nhánh) |
 | `utils/` | Màu nhấn → class Tailwind, chuyển form ↔ API, gán lỗi form |
-| `components/` | Công khai: `GameCard`, `GameList`, `GameFilters`. Quản trị: `GameForm` (+ `AccentColorField`, `GameBranchesField`), `GameTable`, `AdminGameSearch`, `GameCategoryForm`, `GameCategoryRow` |
+| `components/` | Công khai: `GameCard`, `GameList`, `GameCarousel`, `GameFilters`. Quản trị: `GameForm` (+ `AccentColorField`, `GameBranchesField`), `GameTable`, `AdminGameSearch`, `GameCategoryForm`, `GameCategoryRow` |
 | `pages/` | 4 trang quản trị. Trang công khai `/games` nằm ở `src/pages/GamesPage.tsx` (lý do bên dưới) |
 
 ---
@@ -69,7 +69,7 @@ Mẹo đi kèm: query key của danh sách này là `['branches', { limit: 100, 
 
 | Hook | Làm gì |
 |---|---|
-| `useGames(query)` | Danh sách, trả **`{ items, meta }`** (`meta` có `page`, `totalPages` để phân trang). Mặc định `limit: 100` (trang quản trị); `/games` truyền `page` + `limit: 8`; trang chủ truyền `limit: 8`. Có `placeholderData: keepPreviousData`: đổi trang, bộ lọc hay từ khóa thì **giữ danh sách cũ trên màn hình** trong lúc tải danh sách mới, không nháy về khung xám |
+| `useGames(query)` | Danh sách, trả **`{ items, meta }`** (`meta` có `page`, `totalPages` để phân trang). Mặc định `limit: 100` (trang quản trị); `/games` truyền `page` + `limit: 8`; dải trượt trang chủ truyền `limit: 16`. Có `placeholderData: keepPreviousData`: đổi trang, bộ lọc hay từ khóa thì **giữ danh sách cũ trên màn hình** trong lúc tải danh sách mới, không nháy về khung xám |
 | `useGameCount()` | Gọi `/games?limit=1`, chỉ đọc `meta.total`, ra số "Tựa game" ở hero. Không tải 100 game chỉ để đếm |
 | `useGame(id, includeInactive)` | Một game kèm `branchIds` (trang sửa) |
 | `useGameCategories(query)` | Thể loại cho bộ lọc, ô tick trong form và trang quản trị |
@@ -81,7 +81,7 @@ Mẹo đi kèm: query key của danh sách này là `['branches', { limit: 100, 
 
 ---
 
-## 📁 File: `components/GameCard.tsx` và `GameList.tsx`
+## 📁 File: `components/GameCard.tsx`, `GameList.tsx` và `GameCarousel.tsx`
 
 ### Phân tích
 
@@ -89,11 +89,27 @@ Mẹo đi kèm: query key của danh sách này là `['branches', { limit: 100, 
 - **Poster tỉ lệ 3:4.** Có `posterUrl` thì hiện ảnh (`alt`, `loading="lazy"`, kích thước cố định để trang không nhảy). **Không có ảnh** thì hiện **tên game chữ to, phát sáng**, màu theo `accentColor`: Tekken 8 đỏ, Street Fighter 6 cam, NBA 2K26 vàng…
 - Màu đi qua `utils/accent.ts` (`ACCENT_TEXT_CLASS.red` → `text-neon-red`), không viết cứng mã màu trong component.
 - Dưới poster: tên in hoa, **các thể loại** nối bằng dấu chấm giữa (cam, vd "Hành Động · Co-op") và số người chơi.
+- **Mọi thẻ cao bằng nhau**, dù tên game dài hay ngắn:
+  - Tên luôn chiếm **đúng 2 dòng**: `line-clamp-2` cắt phần dư bằng "…", và `min-h-[2lh]` giữ đủ chỗ 2 dòng cho tên ngắn (`lh` = chiều cao một dòng).
+  - Thể loại luôn **1 dòng** (`truncate`); số người chơi không bao giờ bị ngắt (`whitespace-nowrap`).
+  - Dòng thể loại / số người được đẩy xuống đáy (`mt-auto`), thẻ giãn đầy ô (`h-full`), nên các thẻ cùng hàng thẳng nhau.
+  - Rê chuột vào thẻ thì hiện tên (và thể loại) đầy đủ nhờ thuộc tính `title`.
+
+  Không có quy tắc này thì "Demon Slayer: Kimetsu no Yaiba – The Hinokami Chronicles 2" (4 dòng) cao hơn hẳn "Sackboy" (2 dòng), lưới nhìn lởm chởm.
 
 **`GameList`**:
 - **Props:** `query` (bộ lọc và trang), `emptyMessage` (chữ khi không có game), `onPageChange` (có truyền thì hiện **thanh chuyển trang** dưới lưới khi nhiều hơn 1 trang; trang chủ không truyền nên không có).
 - Lưới 2 → 3 → 4 cột theo bề rộng màn hình.
 - Đủ 3 trạng thái: khung xám (đang tải), lỗi kèm "Thử lại", rỗng ("Không có game nào khớp bộ lọc." khi đang lọc).
+
+**`GameCarousel`** (dải game trang chủ, tự trượt sang trái liên tục):
+- **Cách trượt vòng không giật:** danh sách game được vẽ **2 lần liền nhau** trong một hàng. Hiệu ứng `animate-marquee` (khai báo trong `styles/index.css`) dời cả hàng từ `translateX(0)` tới `translateX(-50%)`, tức đúng **hết bản thứ nhất**, rồi lặp lại từ đầu. Lúc đó bản thứ hai đang nằm đúng chỗ bản thứ nhất lúc bắt đầu, nên mắt không thấy chỗ nối.
+- Để 2 bản dài **đúng bằng nhau**, khoảng cách giữa thẻ dùng `padding-right` của từng thẻ thay vì `gap` (gap không có ở sau thẻ cuối, làm 2 nửa lệch nhau vài pixel và gây giật).
+- **Tốc độ:** 60 giây một vòng (16 game ≈ 1 thẻ mỗi 4 giây). Muốn đổi: sửa `60s` ở `--animate-marquee`.
+- **Rê chuột hoặc focus bàn phím** vào dải thì dừng (`animation-play-state: paused`) để khách xem kỹ.
+- **Hai mép mờ dần** bằng `mask-image` (gradient trong suốt → đen → trong suốt).
+- **Khả năng tiếp cận:** bản lặp thứ hai có `aria-hidden`, để trình đọc màn hình không đọc 2 lần. Người dùng bật "giảm chuyển động" (`prefers-reduced-motion`) thì dải không chạy, thay bằng thanh cuộn ngang.
+- **Ít hơn 6 game** (hoặc đang tải, lỗi) thì hiện `GameList` dạng lưới 8 game, vì ít game mà trượt sẽ thấy khoảng trống ở cuối hàng.
 
 ---
 
@@ -191,8 +207,8 @@ Thể loại đang ẩn ghi **"Đang ẩn (game chỉ có thể loại này sẽ
 - **Trang chủ**:
   - Hero thêm `{ value: '12', label: 'Tựa game' }` từ `useGameCount`.
   - Nút "Xem game" dẫn tới `/games`.
-  - Mục "Kho game" có `<GameList query={{ limit: 8 }} />` và nút "Xem tất cả game".
-- **`index.ts`** export: `GameList`, `GameFilters`, `useGameCount`, `gameAdminRoutes`, `GAME_SEARCH_PARAMS`, `GAMES_PER_PAGE`, `readIdParam`, type `Game`, `GameListQuery`.
+  - Mục "Kho game" có `<GameCarousel limit={16} />` (dải tự trượt) và nút "Xem tất cả game".
+- **`index.ts`** export: `GameCarousel`, `GameList`, `GameFilters`, `useGameCount`, `gameAdminRoutes`, `GAME_SEARCH_PARAMS`, `GAMES_PER_PAGE`, `readIdParam`, type `Game`, `GameListQuery`.
 - `error-messages.ts` có thông báo tiếng Việt cho `GAME_001` → `GAME_006`.
 - `shared/components/ui/SelectField.tsx`: ô chọn dùng chung, cùng giao diện với `TextField`. Hiện **chưa nơi nào dùng** (form game đã đổi sang ô tick), giữ lại cho `menu`, `promotion`.
 
@@ -211,6 +227,8 @@ Thể loại đang ẩn ghi **"Đang ẩn (game chỉ có thể loại này sẽ
 - **"Mọi chi nhánh"** là ô tick trong form, gửi lên thành `branchIds: null`.
 - Mọi thao tác ghi làm mới cả game, chi tiết và thể loại. Danh sách chi nhánh dùng chung cache với feature `branch` nhờ trùng query key.
 - Một game có **1–5 thể loại** (ô tick); thẻ ghi "Hành Động · Co-op", bảng quản trị ghi "Hành Động, Co-op".
+- Mọi thẻ game cao bằng nhau: tên 2 dòng, thể loại 1 dòng, dư thì "…".
+- Trang chủ: dải game tự trượt vòng (danh sách vẽ 2 lần, trượt đúng nửa); rê chuột thì dừng; ít game thì về lưới.
 - `GAME_002` hiện ngay dưới ô tên, `GAME_003` dưới ô thể loại; nút xóa thể loại còn game bị khóa sẵn.
 - Trang quản trị game tìm được theo tên (`?q=` trên URL); đổi từ khóa không làm bảng nháy nhờ `keepPreviousData`.
 - Chưa có: test tự động (`/fe-test game`), lọc theo thể loại ở bảng quản trị, upload ảnh poster (chỉ nhập link).

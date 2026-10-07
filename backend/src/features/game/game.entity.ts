@@ -1,6 +1,11 @@
-import type { AccentColor } from '@/generated/prisma/client';
+import type { AccentColor, Prisma } from '@/generated/prisma/client';
 
-/** Game trong danh sách (GET /games): kèm thể loại, KHÔNG kèm branchIds (nặng) */
+export interface GameCategoryRef {
+  id: number;
+  name: string;
+}
+
+/** Game trong danh sách (GET /games): kèm các thể loại, KHÔNG kèm branchIds (nặng) */
 export interface GameListItem {
   id: number;
   title: string;
@@ -8,8 +13,8 @@ export interface GameListItem {
   posterUrl: string | null;
   accentColor: AccentColor;
   description: string | null;
-  gameCategoryId: number;
-  category: { id: number; name: string };
+  /** 1–5 thể loại, xếp theo sortOrder của thể loại */
+  categories: GameCategoryRef[];
   sortOrder: number;
   isActive: boolean;
   createdAt: Date;
@@ -29,24 +34,28 @@ export const GAME_LIST_SELECT = {
   posterUrl: true,
   accentColor: true,
   description: true,
-  gameCategoryId: true,
-  gameCategory: { select: { id: true, name: true } },
+  categories: {
+    select: { gameCategory: { select: { id: true, name: true } } },
+    orderBy: [{ gameCategory: { sortOrder: 'asc' } }, { gameCategoryId: 'asc' }],
+  },
   sortOrder: true,
   isActive: true,
   createdAt: true,
   updatedAt: true,
-} as const;
+} satisfies Prisma.GameSelect;
 
 export const GAME_DETAIL_SELECT = {
   ...GAME_LIST_SELECT,
   branches: { select: { branchId: true }, orderBy: { branchId: 'asc' } },
-} as const;
+} satisfies Prisma.GameSelect;
 
-type GameListRow = Omit<GameListItem, 'category'> & { gameCategory: { id: number; name: string } };
+type GameListRow = Omit<GameListItem, 'categories'> & {
+  categories: { gameCategory: GameCategoryRef }[];
+};
 type GameDetailRow = GameListRow & { branches: { branchId: number }[] };
 
-export function toGameListItem({ gameCategory, ...row }: GameListRow): GameListItem {
-  return { ...row, category: gameCategory };
+export function toGameListItem({ categories, ...row }: GameListRow): GameListItem {
+  return { ...row, categories: categories.map((item) => item.gameCategory) };
 }
 
 export function toGameDetail({ branches, ...row }: GameDetailRow): GameDetail {

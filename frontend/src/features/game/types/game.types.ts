@@ -9,8 +9,8 @@ export interface Game {
   posterUrl: string | null
   accentColor: AccentColor
   description: string | null
-  gameCategoryId: number
-  category: { id: number; name: string }
+  /** 1–5 thể loại, xếp theo thứ tự (sortOrder) của thể loại */
+  categories: { id: number; name: string }[]
   sortOrder: number
   isActive: boolean
   /** ISO 8601 UTC */
@@ -38,7 +38,8 @@ export interface GameListQuery {
 /** Body POST /games; PUT gửi một phần */
 export interface GamePayload {
   title: string
-  gameCategoryId: number
+  /** 1–5 id thể loại */
+  gameCategoryIds: number[]
   players: string | null
   posterUrl: string | null
   accentColor: AccentColor

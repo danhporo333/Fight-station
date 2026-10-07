@@ -126,8 +126,8 @@ Cột Auth: **Công khai** = không cần token; **Admin** = owner hoặc staff;
 ### Game
 | Method | Path | Mô tả | Auth |
 |---|---|---|---|
-| GET | `/games` | Danh sách game. Lọc: `q` (theo tên), `categoryId`, `branchId` | Công khai |
-| GET | `/games/:id` | Chi tiết game, kèm `category` và `branchIds` (`null` = mọi chi nhánh) | Công khai |
+| GET | `/games` | Danh sách game. Lọc: `q` (theo tên), `categoryId` (game có thể loại này trong số các thể loại của nó), `branchId` | Công khai |
+| GET | `/games/:id` | Chi tiết game, kèm `categories` và `branchIds` (`null` = mọi chi nhánh) | Công khai |
 | POST | `/games` | Thêm game | Admin |
 | PUT | `/games/:id` | Sửa game (gồm `branchIds`) | Admin |
 | DELETE | `/games/:id` | Xóa game | Admin |
@@ -192,7 +192,7 @@ Lỗi: `400 COMMON_001` kèm `details` (sai `currentPassword` → `{ "field": "c
 { "success": true,
   "data": [ { "id": 5, "title": "Tekken 8", "players": "1-2P", "posterUrl": "https://.../tekken8.jpg",
               "accentColor": "orange", "description": "Game đối kháng...",
-              "category": { "id": 2, "name": "Đối Kháng" }, "sortOrder": 1, "isActive": true } ],
+              "categories": [ { "id": 2, "name": "Đối Kháng" } ], "sortOrder": 1, "isActive": true } ],
   "meta": { "page": 1, "limit": 12, "total": 1, "totalPages": 1 } }
 ```
 Danh sách không trả `branchIds` (nặng); xem ở `GET /games/:id`. Lỗi: `400 COMMON_001` (vd `limit=500`).
@@ -200,17 +200,18 @@ Danh sách không trả `branchIds` (nặng); xem ở `GET /games/:id`. Lỗi: `
 ### 7.3 `POST /games` (Admin)
 ```json
 // Request
-{ "title": "EA FC 26", "gameCategoryId": 3, "players": "1-4P", "accentColor": "amber",
+{ "title": "EA FC 26", "gameCategoryIds": [3, 5], "players": "1-4P", "accentColor": "amber",
   "posterUrl": null, "description": "Bóng đá", "branchIds": [1, 2] }
 // 201
-{ "success": true, "data": { "id": 21, "title": "EA FC 26", "gameCategoryId": 3,
+{ "success": true, "data": { "id": 21, "title": "EA FC 26",
+  "categories": [ { "id": 3, "name": "Thể Thao" }, { "id": 5, "name": "Co-op" } ],
   "accentColor": "amber", "branchIds": [1, 2], "isActive": true, "sortOrder": 0,
   "createdAt": "2026-10-05T15:30:00.000Z" } }
 ```
-Bắt buộc: `title` (1–150 ký tự), `gameCategoryId`. Không gửi `branchIds` (hoặc gửi `null`) thì game có ở **mọi** chi nhánh, kể cả chi nhánh mở sau này: không ghi dòng `branch_game` nào, response trả `"branchIds": null`. `branchIds: []` bị từ chối (`400 COMMON_001`). Response `201` có cùng dạng với `GET /games/:id` (thêm `category`, `description`...). Lỗi: `401 AUTH_002/003` · `409 GAME_002` trùng tên · `404 GAME_003` thể loại không có · `400 GAME_006` chi nhánh không tồn tại · `400 COMMON_001` sai dữ liệu.
+Bắt buộc: `title` (1–150 ký tự), `gameCategoryIds` (1–5 id thể loại; id trùng tự gộp; `categories` trả về xếp theo `sortOrder` của thể loại). Không gửi `branchIds` (hoặc gửi `null`) thì game có ở **mọi** chi nhánh, kể cả chi nhánh mở sau này: không ghi dòng `branch_game` nào, response trả `"branchIds": null`. `branchIds: []` bị từ chối (`400 COMMON_001`). Response `201` có cùng dạng với `GET /games/:id` (thêm `category`, `description`...). Lỗi: `401 AUTH_002/003` · `409 GAME_002` trùng tên · `404 GAME_003` có thể loại không tồn tại · `400 GAME_006` chi nhánh không tồn tại · `400 COMMON_001` sai dữ liệu.
 
 ### 7.4 `PUT /games/:id` (Admin)
-Chỉ gửi trường cần đổi. `branchIds` nếu có sẽ **thay toàn bộ** danh sách chi nhánh của game; `branchIds: null` chuyển về mọi chi nhánh; không gửi thì giữ nguyên.
+Chỉ gửi trường cần đổi. `gameCategoryIds` nếu có sẽ **thay toàn bộ** thể loại của game. `branchIds` nếu có sẽ **thay toàn bộ** danh sách chi nhánh của game; `branchIds: null` chuyển về mọi chi nhánh; không gửi thì giữ nguyên.
 ```json
 { "isActive": false, "branchIds": [1] }
 ```

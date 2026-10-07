@@ -12,7 +12,7 @@ Hiển thị game của quán theo thể loại, lọc theo chi nhánh và tìm 
 | GET | `/games?limit=1` | `useGameCount` (đọc `meta.total` cho số "Tựa game" ở hero) |
 | GET | `/games/:id?includeInactive=true` | `AdminGameEditPage` (có `branchIds`) |
 | POST / PUT / DELETE | `/games`, `/games/:id` | Trang quản trị |
-| GET | `/game-categories?limit=100` | `GameFilters` (nút thể loại), ô chọn trong `GameForm` (`includeInactive`), trang quản trị thể loại |
+| GET | `/game-categories?limit=100` | `GameFilters` (nút thể loại), ô tick thể loại trong `GameForm` (`GameCategoriesField`, `includeInactive`), trang quản trị thể loại |
 | POST / PUT / DELETE | `/game-categories`, `/game-categories/:id` | `AdminGameCategoriesPage` |
 | GET | `/branches?limit=100&includeInactive=true` | `useBranchOptions` (ô tick chi nhánh trong form game). Gọi API thẳng, **không import feature `branch`**; key `['branches', params]` trùng trang quản trị chi nhánh nên dùng chung cache và tự làm mới khi chi nhánh đổi |
 
@@ -21,7 +21,7 @@ Hiển thị game của quán theo thể loại, lọc theo chi nhánh và tìm 
 |---|---|---|---|
 | `/games` | `src/pages/GamesPage.tsx` (lazy; ghép `branch` + `game`) | Công khai | route trong `app/routes.tsx`; link "Game" trong `PUBLIC_NAV` |
 | `/admin/games` | `AdminGamesPage`: ô tìm theo tên (`?q=` trên URL), bảng (kể cả đang ẩn), Thêm/Sửa/Xóa | Admin | `gameAdminRoutes` trong nhánh `admin`; menu "Game" ở `AdminRoot.tsx` |
-| `/admin/games/new`, `/admin/games/:id/edit` | `AdminGameNewPage`, `AdminGameEditPage` | Admin | như trên |
+| `/admin/games/new`, `/admin/games/:id/edit` | `AdminGameNewPage`, `AdminGameEditPage` (form có ô tick 1–5 thể loại) | Admin | như trên |
 | `/admin/game-categories` | `AdminGameCategoriesPage`: thêm ở đầu trang, sửa ngay trên dòng, xóa | Admin | như trên; menu "Thể loại game" |
 
 Trang chủ (`src/pages/HomePage.tsx`): hero thêm số "Tựa game" (`useGameCount`), nút "Xem game" → `/games`, mục `#games` "Kho game **Khủng bố**" với `GameList` 8 game + nút "Xem tất cả game".
@@ -33,7 +33,7 @@ Trang chủ (`src/pages/HomePage.tsx`): hero thêm số "Tựa game" (`useGameCo
 | `services/` | `game.service.ts` (`getGames`, `getGame`, `createGame`, `updateGame`, `deleteGame`, `getBranchOptions`, `BRANCH_OPTIONS_PARAMS`), `game-category.service.ts` |
 | `hooks/` | `game.keys.ts`, `useGames`, `useGameCount`, `useGame`, `useCreateGame`, `useUpdateGame`, `useDeleteGame`, `useInvalidateGames`, `useGameCategories`, `useCreateGameCategory`, `useUpdateGameCategory`, `useDeleteGameCategory`, `useBranchOptions` |
 | `utils/` | `accent.ts` (`ACCENT_TEXT_CLASS`, `ACCENT_SWATCH_CLASS`, `ACCENT_OPTIONS`), `game.utils.ts` (`GAME_SEARCH_PARAMS`, `readIdParam`, chuyển form ↔ API cho game và thể loại), `game-form-errors.ts` (`applyGameErrors`) |
-| `components/` | Công khai: `GameCard`, `GameList`, `GameFilters`. Quản trị: `GameForm` (+ `AccentColorField`, `GameBranchesField`), `GameTable`, `AdminGameSearch`, `GameCategoryForm`, `GameCategoryRow` |
+| `components/` | Công khai: `GameCard`, `GameList`, `GameFilters`. Quản trị: `GameForm` (+ `GameCategoriesField`, `AccentColorField`, `GameBranchesField`), `GameTable`, `AdminGameSearch`, `GameCategoryForm`, `GameCategoryRow` |
 | `pages/` | `AdminGamesPage`, `AdminGameNewPage`, `AdminGameEditPage`, `AdminGameCategoriesPage` |
 
 ## Public API (`index.ts`)
@@ -44,6 +44,7 @@ Trang chủ (`src/pages/HomePage.tsx`): hero thêm số "Tựa game" (`useGameCo
 - Mọi thao tác ghi (game hoặc thể loại) → `useInvalidateGames` làm mới cả `['games']`, `['game']`, `['game-categories']` (số game của thể loại, tên thể loại trên thẻ game đều có thể đổi).
 
 ## Quyết định đã chốt
+- **Nhiều thể loại** (2026-10-07): `Game.categories` là mảng (xếp theo `sortOrder` thể loại); form dùng ô tick (`GameCategoriesField`), chọn 1–5, liệt kê cả thể loại đang ẩn (ghi "đang ẩn"); gửi `gameCategoryIds: number[]`. Thẻ game ghi `Hành Động · Co-op`, bảng quản trị ghi `Hành Động, Co-op`. `GAME_003` (thể loại vừa bị xóa) → lỗi ngay ở ô thể loại.
 - **Chi nhánh**: form có ô "Có ở mọi chi nhánh" (mặc định) → gửi `branchIds: null`; bỏ chọn thì hiện ô tick từng chi nhánh (kể cả chi nhánh đang ẩn, ghi "(đang ẩn)"), phải tick ≥ 1 → gửi mảng. Khớp quy ước backend "không có dòng = mọi chi nhánh".
 - **Bộ lọc trên URL**: `GameFilters` ghi `?category=<id>` và `?q=` (ô tìm chờ 300ms bằng `useDebounce`, `replace`); `BranchPicker` (branch) ghi `?branch=<id>`. `GamesPage` đọc cả ba (`readIdParam` bỏ giá trị sai) rồi truyền vào `GameList`. Không phân trang (`limit: 100`).
 - **Thẻ game** theo prototype: poster 3:4 (`posterUrl` trống → tên game chữ to, màu theo `accentColor` qua `ACCENT_TEXT_CLASS`, phát sáng), tên in hoa, thể loại (cam) và số người chơi (mono). Lưới 2 cột → 3 (`sm`) → 4 (`lg`).
@@ -52,7 +53,7 @@ Trang chủ (`src/pages/HomePage.tsx`): hero thêm số "Tựa game" (`useGameCo
 - **Xóa thể loại**: nút Xóa bị khóa khi `gameCount > 0` (tooltip "Còn N game…"); API vẫn chặn bằng `GAME_005`. Xóa game/thể loại đều có `ConfirmDialog`.
 - **Tìm ở trang quản trị**: `AdminGameSearch` ghi `?q=` (chờ 300ms, `replace`, nút ✕ xóa từ khóa); `AdminGamesPage` đọc `q` rồi gọi `useGames({ includeInactive: true, q })`. Không có kết quả thì ghi "Không có game nào có tên chứa …".
 - `useGames` dùng `placeholderData: keepPreviousData`: đổi bộ lọc hoặc từ khóa thì giữ danh sách cũ trên màn hình trong lúc tải, không nháy về khung xám.
-- Thể loại đang ẩn ghi "Đang ẩn (ẩn cả game)"; ô chọn thể loại trong form vẫn liệt kê thể loại ẩn, ghi "(đang ẩn)".
+- Thể loại đang ẩn ghi "Đang ẩn (game chỉ có thể loại này sẽ ẩn theo)" ở trang quản trị thể loại: game chỉ ẩn khi **mọi** thể loại của nó đều ẩn. `shared/components/ui/SelectField.tsx` hiện chưa nơi nào dùng (giữ cho `menu`, `promotion`).
 
 ## Ghi chú UI
 - `GameList` đủ 3 trạng thái: khung xám (tối đa 8), lỗi + "Thử lại", rỗng ("Chưa có game nào." / "Không có game nào khớp bộ lọc." trên `/games` khi đang lọc).

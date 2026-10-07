@@ -55,7 +55,7 @@ Mọi bảng đều có 3 cột chung, **không lặp lại** ở các bảng d�
 | | **Index** | — | `idx_admin_user_username` (UNIQUE) |
 
 ### Feature Game
-`game_category` là thể loại (Đối Kháng, Thể Thao...), `game` là game của quán, `branch_game` cho biết game nào có ở chi nhánh nào (nhiều-nhiều).
+`game_category` là thể loại (Đối Kháng, Thể Thao...), `game` là game của quán, `game_game_category` cho biết game thuộc thể loại nào (nhiều-nhiều, 1–5 thể loại mỗi game), `branch_game` cho biết game nào có ở chi nhánh nào (nhiều-nhiều).
 
 | Bảng | Cột | Kiểu | Ràng buộc |
 |---|---|---|---|
@@ -63,15 +63,17 @@ Mọi bảng đều có 3 cột chung, **không lặp lại** ở các bảng d�
 | | sort_order | INT | NOT NULL, DEFAULT 0 |
 | | is_active | bool | NOT NULL, DEFAULT 1 |
 | | **Index** | — | `idx_game_category_name` (UNIQUE) |
-| **game** | game_category_id | INT UNSIGNED | NOT NULL, FK → game_category.id |
-| | title | VARCHAR(150) | NOT NULL, UNIQUE |
+| **game** | title | VARCHAR(150) | NOT NULL, UNIQUE |
 | | players | VARCHAR(20) | NULL (vd: 1-2P) |
 | | poster_url | VARCHAR(500) | NULL (trống = hiện tên game bằng chữ) |
 | | accent_color | ENUM('orange','red','amber','gold') | NOT NULL, DEFAULT 'orange' |
 | | description | TEXT | NULL |
 | | sort_order | INT | NOT NULL, DEFAULT 0 |
 | | is_active | bool | NOT NULL, DEFAULT 1 |
-| | **Index** | — | `idx_game_title` (UNIQUE, cũng phục vụ tìm theo tiền tố), `idx_game_game_category_id`, `idx_game_is_active_sort_order` |
+| | **Index** | — | `idx_game_title` (UNIQUE, cũng phục vụ tìm theo tiền tố), `idx_game_is_active_sort_order` |
+| **game_game_category** | game_id | INT UNSIGNED | NOT NULL, FK → game.id (CASCADE) |
+| | game_category_id | INT UNSIGNED | NOT NULL, FK → game_category.id (RESTRICT) |
+| | **Index** | — | `idx_game_game_category_game_id_game_category_id` (UNIQUE), `idx_game_game_category_game_category_id` |
 | **branch_game** | branch_id | INT UNSIGNED | NOT NULL, FK → branch.id |
 | | game_id | INT UNSIGNED | NOT NULL, FK → game.id |
 | | **Index** | — | `idx_branch_game_branch_id_game_id` (UNIQUE), `idx_branch_game_game_id` |
@@ -130,7 +132,8 @@ Mọi bảng đều có 3 cột chung, **không lặp lại** ở các bảng d�
 ## 3. Quan hệ
 ```mermaid
 erDiagram
-  game_category ||--o{ game : "gồm"
+  game_category ||--o{ game_game_category : "gồm"
+  game ||--o{ game_game_category : "thuộc"
   branch ||--o{ branch_game : "có"
   game ||--o{ branch_game : "có ở"
   price_plan ||--o{ price_plan_feature : "gồm"
@@ -142,7 +145,7 @@ erDiagram
 **Quy ước quan hệ**
 - 1-n: khóa ngoại nằm ở bảng con, NOT NULL, luôn có index đặt tên theo quy ước.
 - n-n: dùng bảng nối khai báo rõ (không dùng bảng ẩn của Prisma), có `id` riêng và UNIQUE trên cặp khóa.
-- ON DELETE: bảng cha chứa dữ liệu thật (`game_category`, `menu_category`) dùng `RESTRICT`, phải chuyển hoặc xóa con trước để khỏi mất dữ liệu nhầm. Bảng con thuần phụ thuộc (`price_plan_feature`, `branch_game`) dùng `CASCADE`. ON UPDATE giữ mặc định `CASCADE`.
+- ON DELETE: bảng cha chứa dữ liệu thật (`game_category`, `menu_category`) dùng `RESTRICT`, phải chuyển hoặc xóa con trước để khỏi mất dữ liệu nhầm. Bảng con thuần phụ thuộc (`price_plan_feature`, `branch_game`) dùng `CASCADE`. Bảng nối `game_game_category`: phía `game` CASCADE (xóa game thì gỡ thể loại), phía `game_category` RESTRICT (không xóa được thể loại còn game). ON UPDATE giữ mặc định `CASCADE`.
 
 **Quan hệ giữa các feature**
 - Game ↔ Cửa hàng & chi nhánh: qua `branch_game`. **Game không có dòng nào trong `branch_game` = có ở mọi chi nhánh** (kể cả chi nhánh mở sau này); chỉ game giới hạn chi nhánh mới có dòng. Xóa chi nhánh mà game chỉ có ở chi nhánh đó thì game thành "mọi chi nhánh" (CASCADE xóa dòng nối).

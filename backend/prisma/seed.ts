@@ -92,11 +92,16 @@ async function seedBranches(): Promise<void> {
 }
 
 /**
- * Thể loại game (UNIQUE theo tên) rồi game (UNIQUE theo tiêu đề): upsert với update rỗng, nên chạy
- * lại không tạo trùng và không ghi đè dữ liệu chủ quán đã sửa. Game mẫu không ghi branch_game nào
- * (= có ở mọi chi nhánh).
+ * Thể loại rồi game mẫu, CHỈ khi bảng game đang trống (DB mới hoặc vừa reset). Không upsert theo tên
+ * khi đã có dữ liệu: game chủ quán đã xóa hoặc đổi tên sẽ bị seed tạo lại. Thể loại upsert theo tên
+ * (không trùng). Game mẫu không ghi branch_game nào (= có ở mọi chi nhánh).
  */
 async function seedGames(): Promise<void> {
+  if ((await prisma.game.count()) > 0) {
+    logger.info('seed.games_exist');
+    return;
+  }
+
   const categoryIds = new Map<string, number>();
   for (const [index, category] of gameCategoryData.entries()) {
     const row = await prisma.gameCategory.upsert({
@@ -114,12 +119,10 @@ async function seedGames(): Promise<void> {
       logger.warn({ title: game.name, category: game.category }, 'seed.game_category_missing');
       continue;
     }
-    await prisma.game.upsert({
-      where: { title: game.name },
-      update: {},
-      create: {
+    await prisma.game.create({
+      data: {
         title: game.name,
-        gameCategoryId,
+        categories: { create: [{ gameCategoryId }] },
         players: emptyToNull(game.players),
         posterUrl: emptyToNull(game.image),
         accentColor: game.color,
@@ -129,7 +132,7 @@ async function seedGames(): Promise<void> {
   }
   logger.info(
     { categories: gameCategoryData.length, games: gameData.length },
-    'seed.games_upserted',
+    'seed.games_created',
   );
 }
 

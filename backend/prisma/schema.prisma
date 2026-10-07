@@ -91,35 +91,34 @@ enum AccentColor {
 }
 
 model GameCategory {
-  id        Int      @id @default(autoincrement()) @db.UnsignedInt
-  name      String   @unique(map: "idx_game_category_name") @db.VarChar(50)
-  sortOrder Int      @default(0) @map("sort_order")
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(3)
-  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(3)
-  games     Game[]
+  id        Int                @id @default(autoincrement()) @db.UnsignedInt
+  name      String             @unique(map: "idx_game_category_name") @db.VarChar(50)
+  sortOrder Int                @default(0) @map("sort_order")
+  isActive  Boolean            @default(true) @map("is_active")
+  createdAt DateTime           @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt DateTime           @updatedAt @map("updated_at") @db.DateTime(3)
+  // Game thuộc thể loại này (bảng nối nhiều-nhiều)
+  games     GameGameCategory[]
 
   @@map("game_category")
 }
 
 model Game {
-  id             Int          @id @default(autoincrement()) @db.UnsignedInt
-  gameCategoryId Int          @map("game_category_id") @db.UnsignedInt
-  title          String       @unique(map: "idx_game_title") @db.VarChar(150)
-  players        String?      @db.VarChar(20)
-  posterUrl      String?      @map("poster_url") @db.VarChar(500)
-  accentColor    AccentColor  @default(orange) @map("accent_color")
-  description    String?      @db.Text
-  sortOrder      Int          @default(0) @map("sort_order")
-  isActive       Boolean      @default(true) @map("is_active")
-  createdAt      DateTime     @default(now()) @map("created_at") @db.DateTime(3)
-  updatedAt      DateTime     @updatedAt @map("updated_at") @db.DateTime(3)
-  // Xóa thể loại còn game bị chặn (RESTRICT): phải chuyển hoặc xóa game trước
-  gameCategory   GameCategory @relation(fields: [gameCategoryId], references: [id], onDelete: Restrict)
+  id          Int                @id @default(autoincrement()) @db.UnsignedInt
+  title       String             @unique(map: "idx_game_title") @db.VarChar(150)
+  players     String?            @db.VarChar(20)
+  posterUrl   String?            @map("poster_url") @db.VarChar(500)
+  accentColor AccentColor        @default(orange) @map("accent_color")
+  description String?            @db.Text
+  sortOrder   Int                @default(0) @map("sort_order")
+  isActive    Boolean            @default(true) @map("is_active")
+  createdAt   DateTime           @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt   DateTime           @updatedAt @map("updated_at") @db.DateTime(3)
+  // Thể loại của game (1–5, bảng nối nhiều-nhiều)
+  categories  GameGameCategory[]
   // Không có dòng nào = có ở mọi chi nhánh
-  branches       BranchGame[]
+  branches    BranchGame[]
 
-  @@index([gameCategoryId], map: "idx_game_game_category_id")
   @@index([isActive, sortOrder], map: "idx_game_is_active_sort_order")
   @@map("game")
 }
@@ -138,4 +137,20 @@ model BranchGame {
   @@unique([branchId, gameId], map: "idx_branch_game_branch_id_game_id")
   @@index([gameId], map: "idx_branch_game_game_id")
   @@map("branch_game")
+}
+
+// Game thuộc thể loại nào (nhiều-nhiều): một game có 1–5 thể loại.
+// Xóa game thì dòng nối tự xóa (CASCADE); xóa thể loại còn game bị chặn (RESTRICT).
+model GameGameCategory {
+  id             Int          @id @default(autoincrement()) @db.UnsignedInt
+  gameId         Int          @map("game_id") @db.UnsignedInt
+  gameCategoryId Int          @map("game_category_id") @db.UnsignedInt
+  createdAt      DateTime     @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.DateTime(3)
+  game           Game         @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  gameCategory   GameCategory @relation(fields: [gameCategoryId], references: [id], onDelete: Restrict)
+
+  @@unique([gameId, gameCategoryId], map: "idx_game_game_category_game_id_game_category_id")
+  @@index([gameCategoryId], map: "idx_game_game_category_game_category_id")
+  @@map("game_game_category")
 }

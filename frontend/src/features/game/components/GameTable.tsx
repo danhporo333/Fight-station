@@ -42,7 +42,9 @@ export function GameTable({ games, onDelete }: GameTableProps) {
           {games.map((game) => (
             <tr key={game.id} className={game.isActive ? '' : 'text-neutral-500'}>
               <td className="px-4 py-3 font-semibold text-neutral-100">{game.title}</td>
-              <td className="px-4 py-3">{game.category.name}</td>
+              <td className="px-4 py-3">
+                {game.categories.map((category) => category.name).join(', ')}
+              </td>
               <td className="px-4 py-3">{game.players ?? '—'}</td>
               <td className="px-4 py-3 text-center">{game.sortOrder}</td>
               <td className="px-4 py-3">

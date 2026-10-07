@@ -39,11 +39,14 @@ export class GameService {
     return game;
   }
 
-  async create(adminId: number, { branchIds, ...data }: CreateGameDto): Promise<GameDetail> {
+  async create(
+    adminId: number,
+    { branchIds, gameCategoryIds, ...data }: CreateGameDto,
+  ): Promise<GameDetail> {
     await this.assertTitleFree(data.title);
-    await this.assertCategoryExists(data.gameCategoryId);
+    const categoryIds = await this.checkCategoryIds(gameCategoryIds);
     const ids = await this.checkBranchIds(branchIds ?? null);
-    const game = await this.repo.create(data, ids ?? null);
+    const game = await this.repo.create(data, categoryIds, ids ?? null);
     logger.info({ id: game.id, adminId }, 'game.created');
     return game;
   }
@@ -51,16 +54,22 @@ export class GameService {
   async update(
     adminId: number,
     id: number,
-    { branchIds, ...data }: UpdateGameDto,
+    { branchIds, gameCategoryIds, ...data }: UpdateGameDto,
   ): Promise<GameDetail> {
     // Quản trị sửa được cả game đang ẩn
     await this.get(id, true);
     if (data.title !== undefined) await this.assertTitleFree(data.title, id);
-    if (data.gameCategoryId !== undefined) await this.assertCategoryExists(data.gameCategoryId);
+    const categoryIds = gameCategoryIds && (await this.checkCategoryIds(gameCategoryIds));
     const ids = await this.checkBranchIds(branchIds);
-    const game = await this.repo.update(id, data, ids);
+    const game = await this.repo.update(id, data, categoryIds, ids);
     logger.info(
-      { id, adminId, fields: Object.keys(data), branchesChanged: branchIds !== undefined },
+      {
+        id,
+        adminId,
+        fields: Object.keys(data),
+        categoriesChanged: gameCategoryIds !== undefined,
+        branchesChanged: branchIds !== undefined,
+      },
       'game.updated',
     );
     return game;
@@ -78,13 +87,16 @@ export class GameService {
     }
   }
 
-  private async assertCategoryExists(categoryId: number): Promise<void> {
-    if (!(await this.repo.categoryExists(categoryId))) {
+  /** Bỏ id trùng, sắp tăng dần, rồi kiểm tra mọi thể loại có thật (kể cả đang ẩn) */
+  private async checkCategoryIds(gameCategoryIds: number[]): Promise<number[]> {
+    const unique = [...new Set(gameCategoryIds)].sort((a, b) => a - b);
+    if ((await this.repo.countCategories(unique)) !== unique.length) {
       throw new NotFoundError(
         ErrorCode.GAME_CATEGORY_NOT_FOUND,
-        `Không tìm thấy thể loại ${categoryId}`,
+        'Danh sách thể loại có thể loại không tồn tại',
       );
     }
+    return unique;
   }
 
   /** Bỏ id trùng rồi kiểm tra chi nhánh có thật; null/undefined giữ nguyên nghĩa */

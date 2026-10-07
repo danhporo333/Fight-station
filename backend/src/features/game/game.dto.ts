@@ -17,9 +17,12 @@ const branchIds = z
   .max(100)
   .nullable();
 
+/** Thể loại của game: 1–5 id (id trùng tự gộp ở service) */
+const gameCategoryIds = z.array(id).min(1, 'Chọn ít nhất 1 thể loại').max(5, 'Tối đa 5 thể loại');
+
 const gameFields = {
   title: requiredText(150),
-  gameCategoryId: id,
+  gameCategoryIds,
   players: optionalText(20),
   posterUrl: optionalUrl,
   description: optionalText(2000),

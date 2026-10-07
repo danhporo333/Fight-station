@@ -17,7 +17,7 @@ export function readIdParam(value: string | null): number | undefined {
 
 export const EMPTY_GAME_FORM: GameFormInput = {
   title: '',
-  gameCategoryId: '',
+  gameCategoryIds: [],
   players: '',
   posterUrl: '',
   accentColor: 'orange',
@@ -32,7 +32,7 @@ export const EMPTY_GAME_FORM: GameFormInput = {
 export function toGameFormValues(game: GameDetail): GameFormInput {
   return {
     title: game.title,
-    gameCategoryId: String(game.gameCategoryId),
+    gameCategoryIds: game.categories.map((category) => String(category.id)),
     players: game.players ?? '',
     posterUrl: game.posterUrl ?? '',
     accentColor: game.accentColor,
@@ -50,7 +50,7 @@ const emptyToNull = (value: string): string | null => (value === '' ? null : val
 export function toGamePayload(values: GameFormInput): GamePayload {
   return {
     title: values.title,
-    gameCategoryId: Number(values.gameCategoryId),
+    gameCategoryIds: values.gameCategoryIds.map(Number),
     players: emptyToNull(values.players),
     posterUrl: emptyToNull(values.posterUrl),
     accentColor: values.accentColor,

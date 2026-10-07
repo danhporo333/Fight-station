@@ -65,7 +65,7 @@ export function GameCategoryRow({
         <span className="text-green-400">Đang hiện</span>
       ) : (
         <span className="rounded-full bg-neutral-800 px-2 py-0.5 text-xs">
-          Đang ẩn (ẩn cả game)
+          Đang ẩn (game chỉ có thể loại này sẽ ẩn theo)
         </span>
       )}
       <span className="flex gap-2">

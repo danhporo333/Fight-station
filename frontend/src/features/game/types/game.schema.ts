@@ -13,7 +13,11 @@ const sortOrder = z
 export const gameFormSchema = z
   .object({
     title: z.string().trim().min(1, 'Không được để trống').max(150, 'Tối đa 150 ký tự'),
-    gameCategoryId: z.string().min(1, 'Chọn thể loại'),
+    /** Giá trị checkbox là chuỗi id; 1–5 thể loại (khớp backend) */
+    gameCategoryIds: z
+      .array(z.string())
+      .min(1, 'Chọn ít nhất 1 thể loại')
+      .max(5, 'Tối đa 5 thể loại'),
     players: optionalText(20),
     posterUrl: optionalText(500).refine(
       (value) => value === '' || z.url().safeParse(value).success,
@@ -38,7 +42,7 @@ export type GameFormInput = z.infer<typeof gameFormSchema>
 /** Tên các ô, dùng cho applyServerErrors (gán `details` của COMMON_001 vào đúng ô) */
 export const GAME_FORM_FIELDS = [
   'title',
-  'gameCategoryId',
+  'gameCategoryIds',
   'players',
   'posterUrl',
   'accentColor',

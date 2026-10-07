@@ -32,7 +32,9 @@ export function GameCard({ game }: GameCardProps) {
       <div className="p-4">
         <h3 className="mb-1 font-bold uppercase">{game.title}</h3>
         <p className="flex items-center justify-between gap-2 font-mono text-xs tracking-wider text-muted">
-          <span className="text-brand-500">{game.category.name}</span>
+          <span className="text-brand-500">
+            {game.categories.map((category) => category.name).join(' · ')}
+          </span>
           {game.players && <span>{game.players}</span>}
         </p>
       </div>

@@ -5,7 +5,7 @@
 | **Phía** | FE (frontend) |
 | **Chế độ** | `code` |
 | **Target** | `shop` |
-| **Ngày viết** | 2026-10-07 (viết lại sau khi đổi sang giao diện neon theo prototype: hero mới có số liệu và hình tay cầm, `useShop` được export cho trang ghép) |
+| **Ngày viết** | 2026-10-07 (viết lại: giao diện neon, hero mới, `useShop` được export; footer làm lại 4 cột theo prototype) |
 | **Tài liệu đã đọc** | `frontend/src/features/shop/context.md` (trạng thái ✅ Đã cài đặt 2026-10-07), `frontend/src/features/branch/context.md` (trang chủ, `/branches`, `useBranchSummary`), `frontend/docs/FE-ARCHITECTURE.md` (mục 3, 6, 9, 10) |
 
 > Bài viết dựa trên tài liệu tại ngày viết. Nếu code `shop` thay đổi sau đó, đối chiếu lại với `context.md`.
@@ -18,7 +18,7 @@ Phía giao diện của `shop` hiển thị **thông tin quán** ở 3 chỗ:
 
 | Chỗ | Ai thấy | Nội dung |
 |---|---|---|
-| **Footer** (chân trang) mọi trang công khai | Khách | Tên quán, hotline (bấm để gọi), email, giờ mở cửa, nút mạng xã hội |
+| **Footer** (chân trang) mọi trang công khai | Khách | 4 cột: giới thiệu quán + icon mạng xã hội · Khám phá · Chi nhánh · Liên hệ; dòng bản quyền |
 | **Hero** (khối đầu) trang chủ `/` | Khách | Tên quán cỡ lớn, tagline, nút "Xem game" / "Tìm chi nhánh", hàng số liệu (máy PS5, chi nhánh, giờ mở cửa), hình tay cầm |
 | **`/admin/shop`** | Chỉ chủ quán | Form sửa toàn bộ thông tin trên |
 
@@ -40,7 +40,7 @@ component → hook (TanStack Query) → service → http.ts (Axios) → API /api
 | `services/` | `getShop`, `updateShop` |
 | `hooks/` | `shop.keys.ts`, `useShop`, `useUpdateShop` |
 | `utils/` | Hàm thuần: lọc link mạng xã hội, đổi dữ liệu form ↔ API, tạo link gọi điện |
-| `components/` | `ShopFooter`, `ShopHero`, `HeroController` (hình tay cầm), `ShopSocialLinks`, `ShopForm` |
+| `components/` | `ShopFooter`, `ShopHero`, `HeroController` (hình tay cầm), `ShopSocialLinks`, `SocialIcon`, `ShopForm` |
 | `pages/` | `AdminShopPage` |
 | `routes.tsx`, `index.ts` | Route quản trị (lazy) và public API |
 
@@ -115,7 +115,7 @@ Hàm thuần: không gọi API, không hiển thị gì. Dễ đọc và dễ te
 
 ---
 
-## 📁 File: `components/ShopFooter.tsx` và `ShopSocialLinks.tsx`
+## 📁 File: `components/ShopFooter.tsx`, `ShopSocialLinks.tsx`, `SocialIcon.tsx`
 
 ### Mục đích
 Chân trang của mọi trang công khai.
@@ -125,9 +125,22 @@ Chân trang của mọi trang công khai.
 - Tầng: component
 
 ### Phân tích
-- Gọi `useShop()`. **Có dữ liệu:** hiện tên quán (chữ Orbitron phát sáng), nút mạng xã hội (`ShopSocialLinks`, khung viền cam chữ in hoa), hotline (link `tel:`), email (link `mailto:`) và giờ mở cửa. Dòng nào trống thì ẩn dòng đó. Nền footer là màu `dark`, hơi sáng hơn nền trang.
-- **Đang tải, lỗi, hay DB chưa seed (`SHOP_001`):** chỉ hiện dòng "© 2026 Fight Station". Trang **không bị vỡ**, khách vẫn xem được nội dung chính.
-- Icon điện thoại, thư, đồng hồ lấy từ `lucide-react`. Mạng xã hội hiện bằng **nút chữ** (Facebook, Zalo...), vì `lucide-react` không có icon thương hiệu.
+Footer làm theo bản prototype: **4 cột** trên màn hình lớn (cột đầu rộng gấp đôi), 2 cột trên máy tính bảng, 1 cột trên điện thoại.
+
+| Cột | Nội dung | Lấy từ đâu |
+|---|---|---|
+| Giới thiệu | Logo lục giác + tên quán (Orbitron phát sáng), tagline, **ô vuông icon mạng xã hội** | `useShop()` |
+| Khám phá | Trang chủ · Game · Chi nhánh | Prop **`links`** (app/routes.tsx truyền `PUBLIC_NAV`, chung với menu header) |
+| Chi nhánh | Tên các chi nhánh đang hoạt động, bấm → `/branches` | Prop **`branches`** (app/routes.tsx truyền `<BranchFooterList />` của feature `branch`) |
+| Liên hệ | Fanpage Facebook, Zalo quán, hotline (`tel:`), email (`mailto:`), giờ mở cửa | `useShop()` |
+
+Dòng cuối: "© 2026 **FIGHT STATION** — All rights reserved." (chữ mono, tên quán màu cam).
+
+- **Dòng hay link nào trống thì ẩn.** Quán mới nhập Facebook thì chỉ thấy icon Facebook; nhập thêm TikTok ở `/admin/shop` là icon TikTok tự hiện.
+- **Đang tải, lỗi, hay DB chưa seed (`SHOP_001`):** vẫn hiện khung footer với tên mặc định "Fight Station", chỉ ẩn tagline, mạng xã hội và cột Liên hệ. Trang **không bị vỡ**.
+- **Icon mạng xã hội (`SocialIcon`):** `lucide-react` không có icon thương hiệu, nên đường vẽ SVG của Facebook, TikTok, Instagram, YouTube được lấy từ bản prototype; Zalo hiện chữ "Zalo". `ShopSocialLinks` đặt mỗi icon trong ô vuông 42px viền cam, rê chuột thì nổi lên và chuyển nền cam. Mỗi ô có `aria-label` (vd "Facebook") cho trình đọc màn hình.
+
+**Vì sao cột "Chi nhánh" phải truyền qua prop?** Tên chi nhánh là dữ liệu của feature `branch`, mà `shop` không được import `branch`. `app/routes.tsx` (nơi được biết mọi feature) tạo `<BranchFooterList />` rồi truyền vào `ShopFooter` như một "ô trống chờ lắp" (slot). `BranchFooterList` dùng chung cache với thẻ chi nhánh nên không gọi API thêm.
 - Link mạng xã hội mở tab mới với `rel="noopener noreferrer"`, để trang kia không điều khiển được tab của mình.
 
 **Vì sao footer nằm trong feature, mà layout lại nằm trong `shared`?** `PublicLayout` ở `shared/` **không được import** `features/` (quy tắc dự án, ESLint chặn). Vì vậy `PublicLayout` nhận prop `footer`, còn `app/routes.tsx` (nơi được phép biết mọi feature) truyền `<ShopFooter />` vào. Đây gọi là ghép bằng **props/slot**.
@@ -136,7 +149,11 @@ Menu trên header cũng làm cùng cách: `PublicLayout` có thêm prop `navItem
 
 ```tsx
 // app/routes.tsx
-<PublicLayout navItems={PUBLIC_NAV} cta={PUBLIC_CTA} footer={<ShopFooter />} />
+<PublicLayout
+  navItems={PUBLIC_NAV}
+  cta={PUBLIC_CTA}
+  footer={<ShopFooter links={PUBLIC_NAV} branches={<BranchFooterList />} />}
+/>
 ```
 
 ---
@@ -219,9 +236,9 @@ Trang có đủ **3 trạng thái**:
 ## 📁 File: `routes.tsx`, `index.ts` và chỗ ghép trong `app/`
 
 - **`routes.tsx`**: export `shopOwnerRoutes` (path `shop`), trang **tải lazy**: chỉ tải code khi chủ quán mở trang, khách không phải tải.
-- **`app/routes.tsx`**: route này nằm trong nhóm `<RequireRole role="owner" />` của feature `auth`. Nhân viên mở `/admin/shop` sẽ thấy "Không đủ quyền". Cũng ở file này, `<ShopFooter />` (prop `footer`) và menu `PUBLIC_NAV` (prop `navItems`) được truyền vào `PublicLayout`.
+- **`app/routes.tsx`**: route này nằm trong nhóm `<RequireRole role="owner" />` của feature `auth`. Nhân viên mở `/admin/shop` sẽ thấy "Không đủ quyền". Cũng ở file này, `<ShopFooter links={PUBLIC_NAV} branches={<BranchFooterList />} />` (prop `footer`) và menu `PUBLIC_NAV` (prop `navItems`) được truyền vào `PublicLayout`.
 - **`app/AdminRoot.tsx`**: menu quản trị có mục "Thông tin quán" với `ownerOnly: true`, nên **chỉ chủ quán thấy** mục này.
-- **`index.ts`** export `ShopFooter`, `ShopHero` (kèm type `HeroStat`), `useShop`, `shopOwnerRoutes` và type `Shop`. `useShop` được export vì trang ghép cần đọc thông tin quán (Facebook dự phòng cho chi nhánh). Service và các hook còn lại không export, vì không ai ngoài feature cần.
+- **`index.ts`** export `ShopFooter` (props `links`, `branches`), `ShopHero` (kèm type `HeroStat`), `useShop`, `shopOwnerRoutes` và type `Shop`. `useShop` được export vì trang ghép cần đọc thông tin quán (Facebook dự phòng cho chi nhánh). Service và các hook còn lại không export, vì không ai ngoài feature cần.
 - Mã lỗi `SHOP_001` được thêm vào `shared/utils/error-messages.ts`.
 
 ---
@@ -236,6 +253,7 @@ Trang có đủ **3 trạng thái**:
 ## 💡 Điểm cần nhớ (cả feature)
 - Một query key `['shop']` cho cả footer, hero và form. Sửa xong thì invalidate, và mọi nơi tự cập nhật.
 - Lỗi ở trang công khai **không làm vỡ trang**: footer và hero luôn có bản dự phòng.
+- Footer 4 cột; cột "Khám phá" và "Chi nhánh" do `app/routes.tsx` truyền vào qua prop.
 - Form: ô trống là `''`, gửi đi thành `null`; lỗi server gán vào đúng ô.
 - `shared` không import feature: footer (và menu) được "cắm" vào layout qua prop từ `app/routes.tsx`. Feature cũng không import nhau: số liệu chi nhánh vào hero qua props, do trang ghép ở `src/pages/` truyền.
 - Chưa có: test tự động riêng cho `shop` (`/fe-test shop`). Giao diện đã đối chiếu với prototype bằng ảnh chụp tự động, nhưng chưa thử tay hiệu ứng rê chuột trên trình duyệt thật.

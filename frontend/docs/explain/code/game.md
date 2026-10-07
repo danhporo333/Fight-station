@@ -5,7 +5,7 @@
 | **Phía** | FE (frontend) |
 | **Chế độ** | `code` |
 | **Target** | `game` |
-| **Ngày viết** | 2026-10-07 (cập nhật: ô tìm kiếm ở trang quản trị; game có nhiều thể loại, chọn bằng ô tick) |
+| **Ngày viết** | 2026-10-07 (cập nhật: ô tìm kiếm ở trang quản trị; game có nhiều thể loại; `/games` phân trang 8 game/trang) |
 | **Tài liệu đã đọc** | `frontend/src/features/game/context.md` (trạng thái ✅ Đã cài đặt 2026-10-07), `frontend/docs/FE-ARCHITECTURE.md` (mục 3, 4, 5, 6, 9, 10) |
 
 > Bài viết dựa trên tài liệu tại ngày viết. Nếu code `game` thay đổi sau đó, đối chiếu lại với `context.md`.
@@ -16,7 +16,7 @@
 
 | Mặt | Ở đâu | Ai dùng |
 |---|---|---|
-| **Xem game** | Trang `/games` (lọc chi nhánh, thể loại, tìm tên), mục "Kho game" ở trang chủ (8 game), số "Tựa game" ở hero | Khách |
+| **Xem game** | Trang `/games` (lọc chi nhánh, thể loại, tìm tên; **8 game mỗi trang**, có mũi tên chuyển trang), mục "Kho game" ở trang chủ (8 game), số "Tựa game" ở hero | Khách |
 | **Quản lý game** | `/admin/games` (ô tìm theo tên + bảng), `/admin/games/new`, `/admin/games/:id/edit` | Admin (chủ quán và nhân viên) |
 | **Quản lý thể loại** | `/admin/game-categories` | Admin |
 
@@ -69,7 +69,7 @@ Mẹo đi kèm: query key của danh sách này là `['branches', { limit: 100, 
 
 | Hook | Làm gì |
 |---|---|
-| `useGames(query)` | Danh sách, mặc định `limit: 100`; trang chủ truyền `limit: 8`. Có `placeholderData: keepPreviousData`: đổi bộ lọc hay từ khóa thì **giữ danh sách cũ trên màn hình** trong lúc tải danh sách mới, không nháy về khung xám |
+| `useGames(query)` | Danh sách, trả **`{ items, meta }`** (`meta` có `page`, `totalPages` để phân trang). Mặc định `limit: 100` (trang quản trị); `/games` truyền `page` + `limit: 8`; trang chủ truyền `limit: 8`. Có `placeholderData: keepPreviousData`: đổi trang, bộ lọc hay từ khóa thì **giữ danh sách cũ trên màn hình** trong lúc tải danh sách mới, không nháy về khung xám |
 | `useGameCount()` | Gọi `/games?limit=1`, chỉ đọc `meta.total`, ra số "Tựa game" ở hero. Không tải 100 game chỉ để đếm |
 | `useGame(id, includeInactive)` | Một game kèm `branchIds` (trang sửa) |
 | `useGameCategories(query)` | Thể loại cho bộ lọc, ô tick trong form và trang quản trị |
@@ -91,7 +91,7 @@ Mẹo đi kèm: query key của danh sách này là `['branches', { limit: 100, 
 - Dưới poster: tên in hoa, **các thể loại** nối bằng dấu chấm giữa (cam, vd "Hành Động · Co-op") và số người chơi.
 
 **`GameList`**:
-- **Props:** `query` (bộ lọc), `emptyMessage` (chữ khi không có game).
+- **Props:** `query` (bộ lọc và trang), `emptyMessage` (chữ khi không có game), `onPageChange` (có truyền thì hiện **thanh chuyển trang** dưới lưới khi nhiều hơn 1 trang; trang chủ không truyền nên không có).
 - Lưới 2 → 3 → 4 cột theo bề rộng màn hình.
 - Đủ 3 trạng thái: khung xám (đang tải), lỗi kèm "Thử lại", rỗng ("Không có game nào khớp bộ lọc." khi đang lọc).
 
@@ -103,6 +103,7 @@ Mẹo đi kèm: query key của danh sách này là `['branches', { limit: 100, 
 - **Nút thể loại:** "Tất cả" và từng thể loại. Bấm thì ghi `?category=<id>` lên URL; nút đang chọn có nền cam phát sáng.
 - **Ô tìm tên:** gõ vào thì chữ hiện ngay, nhưng **chỉ ghi `?q=` lên URL sau khi ngừng gõ 300ms** (`useDebounce`). Không có độ trễ này thì mỗi phím gõ là một lần gọi API.
 - Ghi URL bằng `replace`, nên bấm "Quay lại" trên trình duyệt không phải lùi qua từng lần gõ.
+- Đổi thể loại hoặc từ khóa thì **xóa `?page`** (về trang 1), vì trang 3 của bộ lọc cũ có thể không tồn tại với bộ lọc mới. `BranchPicker` cũng làm vậy.
 
 **Trang `/games` (`src/pages/GamesPage.tsx`)** ghép **hai feature**:
 ```tsx
@@ -110,14 +111,22 @@ const query = {
   branchId: readIdParam(searchParams.get(BRANCH_SEARCH_PARAM)),       // từ feature branch
   categoryId: readIdParam(searchParams.get(GAME_SEARCH_PARAMS.category)),
   q: searchParams.get(GAME_SEARCH_PARAMS.q)?.trim() || undefined,
+  page: readIdParam(searchParams.get(GAME_SEARCH_PARAMS.page)) ?? 1,
+  limit: GAMES_PER_PAGE,                                              // 8
 }
 <BranchPicker />        {/* branch: ghi ?branch= */}
 <GameFilters />         {/* game: ghi ?category=, ?q= */}
-<GameList query={query} />
+<GameList query={query} onPageChange={goToPage} />
 ```
 `BranchPicker` (của `branch`) và `GameList` (của `game`) **không biết nhau**. Chúng gặp nhau ở URL, và trang ghép đọc URL rồi truyền xuống. Vì ghép 2 feature nên trang nằm ở `src/pages/`, không nằm trong `features/game/pages/` (FE-ARCHITECTURE mục 5, 6).
 
 `readIdParam` bỏ qua giá trị sai: `?category=abc` coi như không lọc, thay vì gửi rác lên API.
+
+**Phân trang (8 game/trang):**
+- **`Pagination`** (`shared/components/ui`, dùng lại được cho feature khác): mũi tên **‹ ›** và số trang; trang đang xem nền cam. Nhiều trang thì rút gọn kiểu `1 … 4 5 6 … 10`. Chỉ 1 trang thì không hiện. Ở trang đầu/cuối, mũi tên tương ứng bị mờ.
+- **`goToPage`** ghi `?page=N` lên URL (trang 1 thì xóa tham số) **không dùng `replace`**: mỗi lần chuyển trang là một bước lịch sử, nên nút "Quay lại" về trang trước. Rồi cuộn lên đầu danh sách (`scrollIntoView`; `scroll-mt-20` chừa chỗ cho header dính).
+- Số game mỗi trang là hằng **`GAMES_PER_PAGE = 8`** trong `utils/game.utils.ts`; muốn đổi chỉ sửa một chỗ.
+- Lỡ mở trang vượt quá số trang (vd `?page=99`): hiện "Không có game nào ở trang này." kèm thanh chuyển trang để quay lại.
 
 ---
 
@@ -183,7 +192,7 @@ Thể loại đang ẩn ghi **"Đang ẩn (game chỉ có thể loại này sẽ
   - Hero thêm `{ value: '12', label: 'Tựa game' }` từ `useGameCount`.
   - Nút "Xem game" dẫn tới `/games`.
   - Mục "Kho game" có `<GameList query={{ limit: 8 }} />` và nút "Xem tất cả game".
-- **`index.ts`** export: `GameList`, `GameFilters`, `useGameCount`, `gameAdminRoutes`, `GAME_SEARCH_PARAMS`, `readIdParam`, type `Game`, `GameListQuery`.
+- **`index.ts`** export: `GameList`, `GameFilters`, `useGameCount`, `gameAdminRoutes`, `GAME_SEARCH_PARAMS`, `GAMES_PER_PAGE`, `readIdParam`, type `Game`, `GameListQuery`.
 - `error-messages.ts` có thông báo tiếng Việt cho `GAME_001` → `GAME_006`.
 - `shared/components/ui/SelectField.tsx`: ô chọn dùng chung, cùng giao diện với `TextField`. Hiện **chưa nơi nào dùng** (form game đã đổi sang ô tick), giữ lại cho `menu`, `promotion`.
 
@@ -194,11 +203,11 @@ Thể loại đang ẩn ghi **"Đang ẩn (game chỉ có thể loại này sẽ
 - **Được dùng bởi:** `src/pages/GamesPage.tsx`, `src/pages/HomePage.tsx`, `src/app/routes.tsx`, `src/app/AdminRoot.tsx`.
 - **Gọi tới:** `shared/services/api/http.ts` → `/api/v1/games`, `/api/v1/game-categories`, `/api/v1/branches`.
 - **Ghép với:** `BranchPicker`, `BRANCH_SEARCH_PARAM` (feature `branch`, chỉ ở trang ghép).
-- **Dùng từ `shared`:** `Button`, `TextField`, `TextAreaField`, `CheckboxField`, `FormAlert`, `ConfirmDialog`, `SectionHeading`, `useDebounce`, `applyServerErrors`, `getErrorMessage`.
+- **Dùng từ `shared`:** `Button`, `TextField`, `TextAreaField`, `CheckboxField`, `FormAlert`, `ConfirmDialog`, `SectionHeading`, `Pagination`, `useDebounce`, `applyServerErrors`, `getErrorMessage`.
 - **Tài liệu:** `frontend/src/features/game/context.md`; `FE-ARCHITECTURE.md` mục 3, 4 (luồng dữ liệu), 5 (giao tiếp qua URL), 6 (routing), 9, 10 (theme neon).
 
 ## 💡 Điểm cần nhớ (cả feature)
-- **Bộ lọc nằm trên URL** (`?branch=&category=&q=`); trang ghép đọc URL rồi truyền vào `GameList`.
+- **Bộ lọc và trang nằm trên URL** (`?branch=&category=&q=&page=`); trang ghép đọc URL rồi truyền vào `GameList`. `/games` hiện 8 game/trang; đổi bộ lọc thì về trang 1.
 - **"Mọi chi nhánh"** là ô tick trong form, gửi lên thành `branchIds: null`.
 - Mọi thao tác ghi làm mới cả game, chi tiết và thể loại. Danh sách chi nhánh dùng chung cache với feature `branch` nhờ trùng query key.
 - Một game có **1–5 thể loại** (ô tick); thẻ ghi "Hành Động · Co-op", bảng quản trị ghi "Hành Động, Co-op".

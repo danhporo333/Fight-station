@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"/d/Code/Fight station/frontend\" && find src -type f -not -path \"*/assets/*\" | sort; echo ---; grep -n \"export\" src/shared/stores/auth.store.ts src/shared/services/api/index.ts src/shared/types/api.types.ts src/app/routes.tsx | cut -c1-110; grep -n \"manualChunks\\\\|target\" vite.config.ts; grep \"^PORT\" ../backend/.env)",
+      "Read(//d/Code/backend/**)",
+      "Bash(npx prettier *)",
+      "Bash(npm run *)",
+      "Bash(npm test *)"
+    ]
+  }
+}

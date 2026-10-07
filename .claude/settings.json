@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/check-skills.mjs\" 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "Kiểm tra skill trong CLAUDE.md..."
+          }
+        ]
+      }
+    ]
+  }
+}

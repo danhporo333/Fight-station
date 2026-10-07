@@ -1,0 +1,33 @@
+// Schema Fight Station — quy ước xem 01-share-docs/DATABASE.md
+// Model thêm theo từng feature (/be-crud), migration: npm run prisma:migrate -- --name <động_từ>_<đối_tượng>
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// ─── auth ───────────────────────────────────────────────────────────────
+
+enum AdminRole {
+  owner
+  staff
+}
+
+model AdminUser {
+  id           Int       @id @default(autoincrement()) @db.UnsignedInt
+  username     String    @unique(map: "idx_admin_user_username") @db.VarChar(50)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  role         AdminRole @default(staff)
+  isActive     Boolean   @default(true) @map("is_active")
+  lastLoginAt  DateTime? @map("last_login_at") @db.DateTime(3)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.DateTime(3)
+
+  @@map("admin_user")
+}

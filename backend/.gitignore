@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+.tsbuildinfo
+*.tsbuildinfo
+
+# env (chỉ commit .env.example)
+.env
+.env.*
+!.env.example
+
+# Prisma client sinh tự động (npm install / prisma generate)
+src/generated/

@@ -5,7 +5,12 @@ import { disconnectDatabase, prisma } from '@/core/database/prisma';
 import { logger } from '@/core/logger';
 import { hashPassword } from '@/shared/utils/password';
 
-import { seedBranches as branchData, seedShop as shopData } from './seed-data';
+import {
+  seedBranches as branchData,
+  seedGameCategories as gameCategoryData,
+  seedGames as gameData,
+  seedShop as shopData,
+} from './seed-data';
 
 /** Dữ liệu mẫu dùng '' cho ô trống; DB lưu null (không lưu chuỗi rỗng) */
 function emptyToNull(value: string): string | null {
@@ -86,10 +91,53 @@ async function seedBranches(): Promise<void> {
   logger.info({ count: branchData.length }, 'seed.branches_created');
 }
 
+/**
+ * Thể loại game (UNIQUE theo tên) rồi game (UNIQUE theo tiêu đề): upsert với update rỗng, nên chạy
+ * lại không tạo trùng và không ghi đè dữ liệu chủ quán đã sửa. Game mẫu không ghi branch_game nào
+ * (= có ở mọi chi nhánh).
+ */
+async function seedGames(): Promise<void> {
+  const categoryIds = new Map<string, number>();
+  for (const [index, category] of gameCategoryData.entries()) {
+    const row = await prisma.gameCategory.upsert({
+      where: { name: category.label },
+      update: {},
+      create: { name: category.label, sortOrder: index },
+      select: { id: true },
+    });
+    categoryIds.set(category.id, row.id);
+  }
+
+  for (const [index, game] of gameData.entries()) {
+    const gameCategoryId = categoryIds.get(game.category);
+    if (gameCategoryId === undefined) {
+      logger.warn({ title: game.name, category: game.category }, 'seed.game_category_missing');
+      continue;
+    }
+    await prisma.game.upsert({
+      where: { title: game.name },
+      update: {},
+      create: {
+        title: game.name,
+        gameCategoryId,
+        players: emptyToNull(game.players),
+        posterUrl: emptyToNull(game.image),
+        accentColor: game.color,
+        sortOrder: index,
+      },
+    });
+  }
+  logger.info(
+    { categories: gameCategoryData.length, games: gameData.length },
+    'seed.games_upserted',
+  );
+}
+
 async function main(): Promise<void> {
   await seedOwner();
   await seedShop();
   await seedBranches();
+  await seedGames();
 }
 
 main()

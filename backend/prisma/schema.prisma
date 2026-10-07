@@ -57,23 +57,85 @@ model Shop {
 // ─── branch ─────────────────────────────────────────────────────────────
 
 model Branch {
-  id           Int      @id @default(autoincrement()) @db.UnsignedInt
-  name         String   @db.VarChar(100)
-  address      String   @db.VarChar(255)
-  phone        String?  @db.VarChar(20)
-  openHours    String?  @map("open_hours") @db.VarChar(100)
-  ps5Count     Int      @default(0) @map("ps5_count") @db.UnsignedSmallInt
-  vipRoomCount Int      @default(0) @map("vip_room_count") @db.UnsignedSmallInt
-  pcRoomCount  Int      @default(0) @map("pc_room_count") @db.UnsignedSmallInt
-  areaM2       Int?     @map("area_m2") @db.UnsignedSmallInt
-  mapUrl       String?  @map("map_url") @db.VarChar(500)
-  facebookUrl  String?  @map("facebook_url") @db.VarChar(500)
-  zaloUrl      String?  @map("zalo_url") @db.VarChar(500)
-  sortOrder    Int      @default(0) @map("sort_order")
-  isActive     Boolean  @default(true) @map("is_active")
-  createdAt    DateTime @default(now()) @map("created_at") @db.DateTime(3)
-  updatedAt    DateTime @updatedAt @map("updated_at") @db.DateTime(3)
+  id           Int          @id @default(autoincrement()) @db.UnsignedInt
+  name         String       @db.VarChar(100)
+  address      String       @db.VarChar(255)
+  phone        String?      @db.VarChar(20)
+  openHours    String?      @map("open_hours") @db.VarChar(100)
+  ps5Count     Int          @default(0) @map("ps5_count") @db.UnsignedSmallInt
+  vipRoomCount Int          @default(0) @map("vip_room_count") @db.UnsignedSmallInt
+  pcRoomCount  Int          @default(0) @map("pc_room_count") @db.UnsignedSmallInt
+  areaM2       Int?         @map("area_m2") @db.UnsignedSmallInt
+  mapUrl       String?      @map("map_url") @db.VarChar(500)
+  facebookUrl  String?      @map("facebook_url") @db.VarChar(500)
+  zaloUrl      String?      @map("zalo_url") @db.VarChar(500)
+  sortOrder    Int          @default(0) @map("sort_order")
+  isActive     Boolean      @default(true) @map("is_active")
+  createdAt    DateTime     @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt    DateTime     @updatedAt @map("updated_at") @db.DateTime(3)
+  // Game có ở chi nhánh này (bảng nối thuộc feature game)
+  games        BranchGame[]
 
   @@index([isActive, sortOrder], map: "idx_branch_is_active_sort_order")
   @@map("branch")
+}
+
+// ─── game ───────────────────────────────────────────────────────────────
+
+// Màu nhấn của thẻ (game, promotion): khai báo một lần, feature sau dùng lại
+enum AccentColor {
+  orange
+  red
+  amber
+  gold
+}
+
+model GameCategory {
+  id        Int      @id @default(autoincrement()) @db.UnsignedInt
+  name      String   @unique(map: "idx_game_category_name") @db.VarChar(50)
+  sortOrder Int      @default(0) @map("sort_order")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(3)
+  games     Game[]
+
+  @@map("game_category")
+}
+
+model Game {
+  id             Int          @id @default(autoincrement()) @db.UnsignedInt
+  gameCategoryId Int          @map("game_category_id") @db.UnsignedInt
+  title          String       @unique(map: "idx_game_title") @db.VarChar(150)
+  players        String?      @db.VarChar(20)
+  posterUrl      String?      @map("poster_url") @db.VarChar(500)
+  accentColor    AccentColor  @default(orange) @map("accent_color")
+  description    String?      @db.Text
+  sortOrder      Int          @default(0) @map("sort_order")
+  isActive       Boolean      @default(true) @map("is_active")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.DateTime(3)
+  // Xóa thể loại còn game bị chặn (RESTRICT): phải chuyển hoặc xóa game trước
+  gameCategory   GameCategory @relation(fields: [gameCategoryId], references: [id], onDelete: Restrict)
+  // Không có dòng nào = có ở mọi chi nhánh
+  branches       BranchGame[]
+
+  @@index([gameCategoryId], map: "idx_game_game_category_id")
+  @@index([isActive, sortOrder], map: "idx_game_is_active_sort_order")
+  @@map("game")
+}
+
+// Game nào có ở chi nhánh nào. Game KHÔNG có dòng nào = có ở mọi chi nhánh.
+// Xóa chi nhánh hoặc game thì dòng nối tự xóa (CASCADE).
+model BranchGame {
+  id        Int      @id @default(autoincrement()) @db.UnsignedInt
+  branchId  Int      @map("branch_id") @db.UnsignedInt
+  gameId    Int      @map("game_id") @db.UnsignedInt
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(3)
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([branchId, gameId], map: "idx_branch_game_branch_id_game_id")
+  @@index([gameId], map: "idx_branch_game_game_id")
+  @@map("branch_game")
 }

@@ -11,6 +11,16 @@ import {
   BranchService,
   createBranchRouter,
 } from '@/features/branch';
+import {
+  createGameCategoryRouter,
+  createGameRouter,
+  GameCategoryController,
+  GameCategoryRepository,
+  GameCategoryService,
+  GameController,
+  GameRepository,
+  GameService,
+} from '@/features/game';
 import { createShopRouter, ShopController, ShopRepository, ShopService } from '@/features/shop';
 import {
   apiRateLimit,
@@ -33,9 +43,15 @@ export function createApp(db: Database = prisma): Express {
 
   const shopController = new ShopController(new ShopService(new ShopRepository(db)));
 
-  // branch: branchService sau này truyền vào GameService (thỏa BranchLookup)
+  // branch: branchService truyền vào GameService (thỏa BranchLookup)
   const branchService = new BranchService(new BranchRepository(db));
   const branchController = new BranchController(branchService);
+
+  // game: GameService hỏi chi nhánh qua BranchLookup, không import nội bộ của branch
+  const gameController = new GameController(new GameService(new GameRepository(db), branchService));
+  const gameCategoryController = new GameCategoryController(
+    new GameCategoryService(new GameCategoryRepository(db)),
+  );
 
   const app = express();
   app.disable('x-powered-by');
@@ -55,6 +71,8 @@ export function createApp(db: Database = prisma): Express {
   v1.use('/auth', createAuthRouter(authController, guards));
   v1.use('/shop', createShopRouter(shopController, guards));
   v1.use('/branches', createBranchRouter(branchController, guards));
+  v1.use('/games', createGameRouter(gameController, guards));
+  v1.use('/game-categories', createGameCategoryRouter(gameCategoryController, guards));
   app.use(config.api.prefix, apiRateLimit, v1);
 
   app.use(notFound);

@@ -127,11 +127,11 @@ Cột Auth: **Công khai** = không cần token; **Admin** = owner hoặc staff;
 | Method | Path | Mô tả | Auth |
 |---|---|---|---|
 | GET | `/games` | Danh sách game. Lọc: `q` (theo tên), `categoryId`, `branchId` | Công khai |
-| GET | `/games/:id` | Chi tiết game, kèm `category` và `branchIds` | Công khai |
+| GET | `/games/:id` | Chi tiết game, kèm `category` và `branchIds` (`null` = mọi chi nhánh) | Công khai |
 | POST | `/games` | Thêm game | Admin |
 | PUT | `/games/:id` | Sửa game (gồm `branchIds`) | Admin |
 | DELETE | `/games/:id` | Xóa game | Admin |
-| GET | `/game-categories` | Danh sách thể loại | Công khai |
+| GET | `/game-categories` | Danh sách thể loại, kèm `gameCount` (số game, kể cả game ẩn) | Công khai |
 | POST | `/game-categories` | Thêm thể loại | Admin |
 | PUT | `/game-categories/:id` | Sửa thể loại | Admin |
 | DELETE | `/game-categories/:id` | Xóa thể loại (409 nếu còn game) | Admin |
@@ -207,10 +207,10 @@ Danh sách không trả `branchIds` (nặng); xem ở `GET /games/:id`. Lỗi: `
   "accentColor": "amber", "branchIds": [1, 2], "isActive": true, "sortOrder": 0,
   "createdAt": "2026-10-05T15:30:00.000Z" } }
 ```
-Bắt buộc: `title` (1–150 ký tự), `gameCategoryId`. Không gửi `branchIds` thì game có ở **mọi** chi nhánh. Lỗi: `401 AUTH_002/003` · `409 GAME_002` trùng tên · `404 GAME_003` thể loại không có · `400 GAME_006` chi nhánh không tồn tại · `400 COMMON_001` sai dữ liệu.
+Bắt buộc: `title` (1–150 ký tự), `gameCategoryId`. Không gửi `branchIds` (hoặc gửi `null`) thì game có ở **mọi** chi nhánh, kể cả chi nhánh mở sau này: không ghi dòng `branch_game` nào, response trả `"branchIds": null`. `branchIds: []` bị từ chối (`400 COMMON_001`). Response `201` có cùng dạng với `GET /games/:id` (thêm `category`, `description`...). Lỗi: `401 AUTH_002/003` · `409 GAME_002` trùng tên · `404 GAME_003` thể loại không có · `400 GAME_006` chi nhánh không tồn tại · `400 COMMON_001` sai dữ liệu.
 
 ### 7.4 `PUT /games/:id` (Admin)
-Chỉ gửi trường cần đổi. `branchIds` nếu có sẽ **thay toàn bộ** danh sách chi nhánh của game.
+Chỉ gửi trường cần đổi. `branchIds` nếu có sẽ **thay toàn bộ** danh sách chi nhánh của game; `branchIds: null` chuyển về mọi chi nhánh; không gửi thì giữ nguyên.
 ```json
 { "isActive": false, "branchIds": [1] }
 ```

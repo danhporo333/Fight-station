@@ -19,6 +19,14 @@ export const ErrorCode = {
 
   // branch
   BRANCH_NOT_FOUND: 'BRANCH_001',
+
+  // game (gồm thể loại và game theo chi nhánh)
+  GAME_NOT_FOUND: 'GAME_001',
+  GAME_TITLE_TAKEN: 'GAME_002',
+  GAME_CATEGORY_NOT_FOUND: 'GAME_003',
+  GAME_CATEGORY_NAME_TAKEN: 'GAME_004',
+  GAME_CATEGORY_HAS_GAMES: 'GAME_005',
+  GAME_BRANCH_NOT_FOUND: 'GAME_006',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];

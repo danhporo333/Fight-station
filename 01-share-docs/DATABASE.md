@@ -145,7 +145,7 @@ erDiagram
 - ON DELETE: bảng cha chứa dữ liệu thật (`game_category`, `menu_category`) dùng `RESTRICT`, phải chuyển hoặc xóa con trước để khỏi mất dữ liệu nhầm. Bảng con thuần phụ thuộc (`price_plan_feature`, `branch_game`) dùng `CASCADE`. ON UPDATE giữ mặc định `CASCADE`.
 
 **Quan hệ giữa các feature**
-- Game ↔ Cửa hàng & chi nhánh: qua `branch_game`. Mặc định mọi game có ở mọi chi nhánh.
+- Game ↔ Cửa hàng & chi nhánh: qua `branch_game`. **Game không có dòng nào trong `branch_game` = có ở mọi chi nhánh** (kể cả chi nhánh mở sau này); chỉ game giới hạn chi nhánh mới có dòng. Xóa chi nhánh mà game chỉ có ở chi nhánh đó thì game thành "mọi chi nhánh" (CASCADE xóa dòng nối).
 - Bảng giá, Menu, Khuyến mãi độc lập, áp dụng toàn hệ thống. Cần giá riêng từng chi nhánh thì thêm `branch_id` (NULL = áp dụng chung) vào `price_plan`, `menu_item`.
 - `admin_user` chưa có khóa ngoại nào (chưa ghi lại ai đã sửa gì).
 

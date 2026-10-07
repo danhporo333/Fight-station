@@ -38,7 +38,7 @@ Danh sách có thêm `meta: { page, limit, total, totalPages }`.
 ## Bảng DB
 - `branch`: `name`, `address`, `phone`, `open_hours`, `ps5_count`, `vip_room_count`, `pc_room_count`, `area_m2`, `map_url`, `facebook_url`, `zalo_url`, `sort_order`, `is_active`, `created_at`, `updated_at`
 - Index: `idx_branch_is_active_sort_order`. Migration `create_branch_table`, `add_pc_room_count_to_branch` (2026-10-07: thêm số phòng PC, mặc định 0; chi nhánh cũ không mất dữ liệu).
-- `branch_game.branch_id` sẽ dùng `ON DELETE CASCADE`: khai báo trong migration của feature `game` (chưa có).
+- `branch_game.branch_id` dùng `ON DELETE CASCADE` (migration `create_branch_game_table` của `game`): xóa chi nhánh tự gỡ khỏi các game. Model `Branch` có quan hệ `games BranchGame[]`. Lưu ý: game chỉ có ở đúng chi nhánh bị xóa sẽ thành "mọi chi nhánh" (xem `game/context.md`).
 - Seed: `seedBranches()` tạo 4 chi nhánh từ `seedBranches` trong `prisma/seed-data.ts` khi bảng đang trống (bảng không có cột UNIQUE nên không upsert được); `sortOrder` theo thứ tự trong file. Chi nhánh mẫu nào có `pcRoom` thì ghi vào `pc_room_count` (mẫu: Tân Bình = 1), còn lại 0.
 
 ## Mã lỗi
@@ -59,5 +59,5 @@ Danh sách có thêm `meta: { page, limit, total, totalPages }`.
 
 ## Phụ thuộc và public API
 - Dùng `guards.optionalAdmin`, `guards.requireOwner` của `auth`. Dùng chung `@/shared/utils/zod-fields` (`requiredText`, `optionalText`, `optionalUrl`, `hasAnyField`) với `shop`.
-- `BranchService` thỏa `BranchLookup` mà `game` sẽ khai báo: `existsAll(ids): Promise<boolean>` (đếm cả chi nhánh đang ẩn; danh sách rỗng → `true`) và `findAllIds(): Promise<number[]>`. `app.ts` đã tạo sẵn `branchService` để truyền vào `GameService`.
+- `BranchService` thỏa `BranchLookup` mà `game` sẽ khai báo: `existsAll(ids): Promise<boolean>` (đếm cả chi nhánh đang ẩn; danh sách rỗng → `true`) và `findAllIds(): Promise<number[]>`. `app.ts` truyền `branchService` vào `GameService` (đã nối dây). `findAllIds` hiện chưa dùng (game chọn cách "không có dòng = mọi chi nhánh").
 - Không import feature nào khác.

@@ -23,12 +23,16 @@ Skill chung ở `.claude/skills/`; skill backend ở `backend/.claude/skills/`; 
 - /be-crud [feature]: sinh CRUD backend (Prisma model + migration → routes, nối dây app.ts, cập nhật context.md)
 - /fe-crud [feature]: sinh CRUD frontend (types, service, hooks, components, trang, routes lazy, ghép app/routes.tsx, cập nhật context.md)
 - /be-test, /fe-test: (chưa có) viết test
+- /git-commit [loại] [mô tả]: viết commit message hoàn toàn bằng tiếng Việt (vd `tính năng(game): thêm trang danh sách game`), chỉ commit file đã stage
+- /explain [code|concept|flow|why] [target]: giải thích code/khái niệm cho người mới, lưu vào `backend/docs/explain/` hoặc `frontend/docs/explain/`
 
 ### Skill Routing
 
 - "tạo feature", "add entity", "generate crud" → `/be-crud` hoặc `/fe-crud`
 - "viết test", "add tests" → `/be-test` hoặc `/fe-test`
 - "init project", "setup structure" → `/init-base`
+- "commit", "tạo commit", "viết commit message" → `/git-commit`
+- "giải thích", "explain", "tại sao", "how does this work" → `/explain`
 - Skill chưa có thì báo user, không tự làm thay
 
 ## Quy tắc giữ file này gọn

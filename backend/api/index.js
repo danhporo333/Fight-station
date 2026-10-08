@@ -1,5 +1,5 @@
 // Entry cho Vercel (serverless): export app Express, không gọi listen().
-// Import từ dist vì alias "@/" đã được tsc-alias đổi thành đường dẫn thật khi build.
+// Dùng JS thuần và import từ dist (đã build + tsc-alias) để Vercel không tự biên dịch src/ (alias "@/" sẽ hỏng).
 import { createApp } from '../dist/app.js';
 
 export default createApp();

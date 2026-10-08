@@ -84,6 +84,8 @@ export function createApp(db: Database = prisma): Express {
 
   const app = express();
   app.disable('x-powered-by');
+  // Sau proxy của Vercel: lấy đúng IP khách cho rate limit
+  app.set('trust proxy', 1);
 
   app.use(requestId);
   app.use(requestLogger);

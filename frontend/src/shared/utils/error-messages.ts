@@ -27,6 +27,9 @@ export const ERROR_MESSAGES: Record<string, string> = {
   GAME_005: 'Thể loại còn game, hãy chuyển hoặc xóa game trước',
   GAME_006: 'Có chi nhánh không còn tồn tại, hãy tải lại trang và chọn lại',
 
+  PRICE_001: 'Không tìm thấy gói giá (có thể đã bị xóa)',
+  PRICE_002: 'Chi nhánh không còn tồn tại, hãy tải lại trang và chọn lại',
+
   MENU_001: 'Không tìm thấy món (có thể đã bị xóa)',
   MENU_002: 'Không tìm thấy nhóm menu (có thể đã bị xóa)',
   MENU_003: 'Tên đã tồn tại (tên nhóm, hoặc tên món trong cùng nhóm)',

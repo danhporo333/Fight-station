@@ -7,6 +7,7 @@ const ADMIN_NAV: AdminNavItem[] = [
   { to: '/admin/game-categories', label: 'Thể loại game' },
   { to: '/admin/menu', label: 'Menu' },
   { to: '/admin/menu-categories', label: 'Nhóm menu' },
+  { to: '/admin/price-plans', label: 'Bảng giá', ownerOnly: true },
   { to: '/admin/shop', label: 'Thông tin quán', ownerOnly: true },
   { to: '/admin/branches', label: 'Chi nhánh', ownerOnly: true },
   { to: '/admin/account', label: 'Tài khoản' },

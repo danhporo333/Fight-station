@@ -3,7 +3,8 @@ import { Link } from 'react-router'
 
 import { BranchList, useBranchSummary } from '@/features/branch'
 import { GameCarousel, useGameCount } from '@/features/game'
-import { MenuBoard } from '@/features/menu'
+import { MenuCarousel } from '@/features/menu'
+import { PricePlanCarousel } from '@/features/price-plan'
 import { ShopHero, useShop, type HeroStat } from '@/features/shop'
 import { SectionHeading } from '@/shared/components/ui/SectionHeading'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
@@ -14,7 +15,7 @@ const BUTTON_CLASS =
 /** Số game trong dải trượt ở trang chủ; xem hết ở /games */
 const HOME_GAME_LIMIT = 16
 
-/** Trang chủ: ghép các feature. Sau này thêm PricePlanList, PromotionList... */
+/** Trang chủ: ghép các feature. Sau này thêm PromotionList... */
 export function HomePage() {
   useDocumentTitle()
   const { data: shop } = useShop()
@@ -70,11 +71,26 @@ export function HomePage() {
         </div>
       </section>
 
+      <section id="pricing" className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
+        <SectionHeading tag="Pricing" title="Bảng giá" accent="Giờ chơi">
+          Chọn loại phòng và combo phù hợp với nhóm của bạn.
+        </SectionHeading>
+        <PricePlanCarousel />
+      </section>
+
       <section id="menu" className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
         <SectionHeading tag="Food & Drinks" title="Ăn vặt" accent="Phủ phê">
           Chiến game càng mê!!! Gọi món ngay tại chỗ, nhân viên mang tới tận máy.
         </SectionHeading>
-        <MenuBoard />
+        <MenuCarousel />
+        <div className="mt-10 flex justify-center">
+          <Link
+            to="/menu"
+            className={`${BUTTON_CLASS} border-2 border-brand-500 text-brand-500 hover:bg-brand-500/10`}
+          >
+            Xem toàn bộ menu
+          </Link>
+        </div>
       </section>
 
       <section id="branches" className="mx-auto max-w-6xl px-4 py-16 sm:py-20">

@@ -4,6 +4,7 @@ import { authAdminRoutes, authPublicRoutes, RequireRole } from '@/features/auth'
 import { BranchFooterList, branchOwnerRoutes } from '@/features/branch'
 import { gameAdminRoutes } from '@/features/game'
 import { menuAdminRoutes, menuPublicRoutes } from '@/features/menu'
+import { pricePlanOwnerRoutes } from '@/features/price-plan'
 import { ShopFooter, shopOwnerRoutes } from '@/features/shop'
 import { HomePage } from '@/pages/HomePage'
 import { ErrorFallback } from '@/shared/components/ErrorBoundary'
@@ -14,6 +15,7 @@ import { NotFoundPage } from '@/shared/components/NotFoundPage'
 const PUBLIC_NAV: PublicNavItem[] = [
   { to: '/', label: 'Trang chủ' },
   { to: '/games', label: 'Game' },
+  { to: '/pricing', label: 'Bảng giá' },
   { to: '/menu', label: 'Menu' },
   { to: '/branches', label: 'Chi nhánh' },
 ]
@@ -45,7 +47,12 @@ export const router = createBrowserRouter([
         lazy: async () => ({ Component: (await import('@/pages/BranchesPage')).BranchesPage }),
       },
       ...menuPublicRoutes,
-      // ...publicRoutes của feature (pricing, promotions)
+      // Trang ghép branch + price-plan nên nằm ở src/pages
+      {
+        path: 'pricing',
+        lazy: async () => ({ Component: (await import('@/pages/PricingPage')).PricingPage }),
+      },
+      // ...publicRoutes của feature (promotions)
       { path: '*', element: <NotFoundPage /> },
     ],
   },
@@ -64,11 +71,7 @@ export const router = createBrowserRouter([
       {
         // Trang chỉ owner: staff vào sẽ thấy "Không đủ quyền"
         element: <RequireRole role="owner" />,
-        children: [
-          ...shopOwnerRoutes,
-          ...branchOwnerRoutes,
-          // ...pricePlanOwnerRoutes
-        ],
+        children: [...shopOwnerRoutes, ...branchOwnerRoutes, ...pricePlanOwnerRoutes],
       },
     ],
   },

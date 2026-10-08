@@ -40,6 +40,8 @@
   --animate-float: float 4s ease-in-out infinite;
   /* Dải game trang chủ: trượt sang trái liên tục (nội dung lặp 2 lần, chạy hết nửa thì về đầu) */
   --animate-marquee: marquee 60s linear infinite;
+  /* Dải bảng giá trang chủ: chạy ngược hướng với dải game (sang phải) */
+  --animate-marquee-reverse: marquee-reverse 60s linear infinite;
 
   @keyframes marquee {
     from {
@@ -47,6 +49,15 @@
     }
     to {
       transform: translateX(-50%);
+    }
+  }
+
+  @keyframes marquee-reverse {
+    from {
+      transform: translateX(-50%);
+    }
+    to {
+      transform: translateX(0);
     }
   }
 
@@ -110,7 +121,8 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-glitch,
   .animate-float,
-  .animate-marquee {
+  .animate-marquee,
+  .animate-marquee-reverse {
     animation: none;
   }
 }

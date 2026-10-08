@@ -2,6 +2,9 @@
 
 > ✅ **Đã cài đặt** (2026-10-07).
 
+## Trang chủ: dải menu tự trượt (2026-10-08)
+`MenuCarousel` (export từ `index.ts`) thay `MenuBoard` ở mục `#menu` trang chủ: mỗi nhóm một khối rộng `w-80` (tiêu đề + các `MenuPriceRow`), cả dải tự trượt sang **trái** như dải game, dùng `shared/components/ui/Marquee` (rê chuột/focus thì dừng, "giảm chuyển động" thì cuộn ngang). Các khối cao bằng nhau (cao bằng khối dài nhất, hàng flex mặc định kéo giãn). **Dưới 5 nhóm** (một bản lặp ngắn hơn màn hình) hoặc đang tải/lỗi thì hiện `MenuBoard`. Dưới dải có nút "Xem toàn bộ menu" → `/menu`; trang `/menu` vẫn dùng `MenuBoard` (đủ nhóm, có thanh nhảy nhanh tới nhóm). Muốn đổi hướng thì sửa `direction` của `Marquee`.
+
 ## Mục đích
 Menu đồ ăn và nước uống, nhóm theo Combo, Đồ Ăn, Snack, Nước, Cafe. Admin (owner và staff) quản lý món, nhóm và trạng thái "tạm hết".
 

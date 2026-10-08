@@ -57,24 +57,26 @@ model Shop {
 // ─── branch ─────────────────────────────────────────────────────────────
 
 model Branch {
-  id           Int          @id @default(autoincrement()) @db.UnsignedInt
-  name         String       @db.VarChar(100)
-  address      String       @db.VarChar(255)
-  phone        String?      @db.VarChar(20)
-  openHours    String?      @map("open_hours") @db.VarChar(100)
-  ps5Count     Int          @default(0) @map("ps5_count") @db.UnsignedSmallInt
-  vipRoomCount Int          @default(0) @map("vip_room_count") @db.UnsignedSmallInt
-  pcRoomCount  Int          @default(0) @map("pc_room_count") @db.UnsignedSmallInt
-  areaM2       Int?         @map("area_m2") @db.UnsignedSmallInt
-  mapUrl       String?      @map("map_url") @db.VarChar(500)
-  facebookUrl  String?      @map("facebook_url") @db.VarChar(500)
-  zaloUrl      String?      @map("zalo_url") @db.VarChar(500)
-  sortOrder    Int          @default(0) @map("sort_order")
-  isActive     Boolean      @default(true) @map("is_active")
-  createdAt    DateTime     @default(now()) @map("created_at") @db.DateTime(3)
-  updatedAt    DateTime     @updatedAt @map("updated_at") @db.DateTime(3)
+  id           Int               @id @default(autoincrement()) @db.UnsignedInt
+  name         String            @db.VarChar(100)
+  address      String            @db.VarChar(255)
+  phone        String?           @db.VarChar(20)
+  openHours    String?           @map("open_hours") @db.VarChar(100)
+  ps5Count     Int               @default(0) @map("ps5_count") @db.UnsignedSmallInt
+  vipRoomCount Int               @default(0) @map("vip_room_count") @db.UnsignedSmallInt
+  pcRoomCount  Int               @default(0) @map("pc_room_count") @db.UnsignedSmallInt
+  areaM2       Int?              @map("area_m2") @db.UnsignedSmallInt
+  mapUrl       String?           @map("map_url") @db.VarChar(500)
+  facebookUrl  String?           @map("facebook_url") @db.VarChar(500)
+  zaloUrl      String?           @map("zalo_url") @db.VarChar(500)
+  sortOrder    Int               @default(0) @map("sort_order")
+  isActive     Boolean           @default(true) @map("is_active")
+  createdAt    DateTime          @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt    DateTime          @updatedAt @map("updated_at") @db.DateTime(3)
   // Game có ở chi nhánh này (bảng nối thuộc feature game)
   games        BranchGame[]
+  // Gói giá áp dụng ở chi nhánh này (bảng nối thuộc feature price-plan)
+  pricePlans   PricePlanBranch[]
 
   @@index([isActive, sortOrder], map: "idx_branch_is_active_sort_order")
   @@map("branch")
@@ -153,6 +155,58 @@ model GameGameCategory {
   @@unique([gameId, gameCategoryId], map: "idx_game_game_category_game_id_game_category_id")
   @@index([gameCategoryId], map: "idx_game_game_category_game_category_id")
   @@map("game_game_category")
+}
+
+// ─── price-plan ─────────────────────────────────────────────────────────
+
+// Gói giá giờ chơi. CHECK (price_vnd >= 0) thêm tay trong migration.
+model PricePlan {
+  id          Int                @id @default(autoincrement()) @db.UnsignedInt
+  name        String             @db.VarChar(100)
+  priceVnd    Int                @map("price_vnd") @db.UnsignedInt
+  unit        String             @default("/giờ") @db.VarChar(30)
+  // Dòng phụ dưới giá, vd "Giờ thường — Thứ 2 đến Thứ 6"
+  description String?            @db.VarChar(255)
+  isHot       Boolean            @default(false) @map("is_hot")
+  sortOrder   Int                @default(0) @map("sort_order")
+  isActive    Boolean            @default(true) @map("is_active")
+  createdAt   DateTime           @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt   DateTime           @updatedAt @map("updated_at") @db.DateTime(3)
+  features    PricePlanFeature[]
+  // Chi nhánh áp dụng; không có dòng nào = áp dụng mọi chi nhánh
+  branches    PricePlanBranch[]
+
+  @@index([isActive, sortOrder], map: "idx_price_plan_is_active_sort_order")
+  @@map("price_plan")
+}
+
+// Gói giá áp dụng ở chi nhánh nào (nhiều-nhiều). Gói không có dòng nào ở đây = áp dụng mọi chi nhánh.
+model PricePlanBranch {
+  id          Int       @id @default(autoincrement()) @db.UnsignedInt
+  pricePlanId Int       @map("price_plan_id") @db.UnsignedInt
+  branchId    Int       @map("branch_id") @db.UnsignedInt
+  createdAt   DateTime  @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.DateTime(3)
+  pricePlan   PricePlan @relation(fields: [pricePlanId], references: [id], onDelete: Cascade)
+  branch      Branch    @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([pricePlanId, branchId], map: "idx_price_plan_branch_price_plan_id_branch_id")
+  @@index([branchId], map: "idx_price_plan_branch_branch_id")
+  @@map("price_plan_branch")
+}
+
+// Quyền lợi của gói, mỗi dòng một ý. Xóa gói thì xóa theo (CASCADE).
+model PricePlanFeature {
+  id          Int       @id @default(autoincrement()) @db.UnsignedInt
+  pricePlanId Int       @map("price_plan_id") @db.UnsignedInt
+  content     String    @db.VarChar(255)
+  sortOrder   Int       @default(0) @map("sort_order")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.DateTime(3)
+  pricePlan   PricePlan @relation(fields: [pricePlanId], references: [id], onDelete: Cascade)
+
+  @@index([pricePlanId], map: "idx_price_plan_feature_price_plan_id")
+  @@map("price_plan_feature")
 }
 
 // ─── menu ───────────────────────────────────────────────────────────────

@@ -10,6 +10,7 @@ import {
   seedGameCategories as gameCategoryData,
   seedGames as gameData,
   seedMenu as menuData,
+  seedPricePlans as pricePlanData,
   seedShop as shopData,
 } from './seed-data';
 
@@ -28,9 +29,14 @@ async function seedOwner(): Promise<void> {
     return;
   }
 
-  const existing = await prisma.adminUser.findUnique({ where: { username }, select: { id: true } });
+  // Đã có bất kỳ owner nào thì thôi, KHÔNG tìm theo tên: chủ quán đổi tên đăng nhập (vd owner → admin)
+  // mà seed tìm theo tên sẽ tạo thêm một owner mới dùng mật khẩu trong .env (đã xảy ra 2026-10-07).
+  const existing = await prisma.adminUser.findFirst({
+    where: { role: 'owner' },
+    select: { id: true },
+  });
   if (existing) {
-    logger.info({ username }, 'seed.owner_exists');
+    logger.info('seed.owner_exists');
     return;
   }
 
@@ -171,11 +177,49 @@ async function seedMenu(): Promise<void> {
   logger.info({ categories: menuData.length, items: itemCount }, 'seed.menu_created');
 }
 
+/**
+ * Bảng giá thật của quán, CHỈ khi bảng price_plan đang trống (bảng không có cột UNIQUE). Bảng giá này
+ * là của chi nhánh thứ 4 (theo thứ tự hiển thị), nên gắn `branchId` của chi nhánh đó; chưa có đủ 4 chi
+ * nhánh thì không gắn chi nhánh nào (áp dụng mọi chi nhánh). `period` → `description`, `hot` → `isHot`; quyền lợi tạo
+ * cùng gói bằng nested create.
+ */
+async function seedPricePlans(): Promise<void> {
+  if ((await prisma.pricePlan.count()) > 0) {
+    logger.info('seed.price_plans_exist');
+    return;
+  }
+
+  const branches = await prisma.branch.findMany({
+    select: { id: true },
+    orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+  });
+  const branchId = branches[3]?.id ?? null;
+
+  for (const [index, plan] of pricePlanData.entries()) {
+    await prisma.pricePlan.create({
+      data: {
+        name: plan.name,
+        priceVnd: plan.price,
+        unit: plan.unit,
+        description: emptyToNull(plan.period),
+        isHot: plan.hot,
+        sortOrder: index,
+        ...(branchId === null ? {} : { branches: { create: [{ branchId }] } }),
+        features: {
+          create: plan.features.map((content, sortOrder) => ({ content, sortOrder })),
+        },
+      },
+    });
+  }
+  logger.info({ count: pricePlanData.length, branchId }, 'seed.price_plans_created');
+}
+
 async function main(): Promise<void> {
   await seedOwner();
   await seedShop();
   await seedBranches();
   await seedGames();
+  await seedPricePlans();
   await seedMenu();
 }
 

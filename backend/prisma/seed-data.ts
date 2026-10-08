@@ -110,59 +110,88 @@ export const seedGames: SeedGame[] = [
   { name: 'Resident Evil 4', category: 'action', players: '1P', color: 'orange', image: '' },
 ];
 
+// Bảng giá thật của quán (tờ "Bảng giá giờ chơi", 2026-10-08): mỗi loại phòng một gói. `price` là giá
+// Giờ lẻ; các combo là dòng quyền lợi dạng "Tên combo: 199K" (giao diện nhận ra đuôi ": <số>K" và
+// vẽ thành bảng giá nhỏ). Dòng không có đuôi này là dịch vụ trong phòng.
+const COMBOS = [
+  'Combo sáng (8h30–13h)',
+  'Combo đêm (0h–8h)',
+  'Combo 3H (tự chọn)',
+  'Combo 5H (tự chọn)',
+  'Combo 7H (tự chọn)',
+];
+const combo = (prices: number[]): string[] => COMBOS.map((label, i) => `${label}: ${prices[i]}K`);
+
+// Dịch vụ trong phòng (tờ "ROOM LIST"). Mỗi gói tối đa 10 dòng gồm cả 5 combo nên tối đa 5 dòng dịch vụ.
+const VIP_PERKS = [
+  'PS5 (2 tay cầm) + TV 65 inch',
+  'Phòng riêng, ghế sofa bed ngả thành giường',
+  'Full Netflix',
+  'Ở tầng cao nhất, nhỏ hơn các phòng khác nên giá rẻ nhất',
+  'WC riêng ở ngoài phòng (không dùng chung)',
+];
+const VVIP_PERKS = [
+  'PS5 (2 tay cầm) + TV 65 inch',
+  'Ghế sofa bed ngả thành giường',
+  'Full Netflix',
+  'Loa Samsung C450',
+  'WC khép kín trong phòng, rộng hơn hạng VIP',
+];
+const LUXURY_PS5_PERKS = [
+  'PS5 (2 tay cầm) + TV 65 inch',
+  'Máy chiếu + ghế sofa bed ngả thành giường',
+  'Full Netflix + loa Samsung C450',
+  'WC khép kín trong phòng',
+  'Phòng rộng và đẹp nhất nhà',
+];
+const LUXURY_PC_PERKS = [
+  'PC (2 máy)',
+  'Máy chiếu + ghế sofa bed ngả thành giường',
+  'Full Netflix + loa Samsung C450',
+  'WC khép kín trong phòng',
+  'Phòng rộng và đẹp nhất nhà',
+];
+
 export const seedPricePlans: SeedPricePlan[] = [
   {
-    name: 'Quick Match',
-    price: 15000,
-    unit: '/giờ',
-    period: 'Giờ thường — Thứ 2 đến Thứ 6',
-    hot: false,
-    features: [
-      'Máy PS5 chuẩn',
-      'Tay cầm DualSense',
-      'Wifi tốc độ cao',
-      'Tính tiền theo giờ linh hoạt',
-    ],
-  },
-  {
-    name: 'Pro Combo',
-    price: 50000,
-    unit: '/4 giờ',
-    period: 'Tiết kiệm 10K — Hot nhất',
-    hot: true,
-    features: [
-      'Máy PS5 Pro 4K HDR',
-      'Ghế gaming cao cấp',
-      'Tặng 1 nước + 1 snack',
-      'Free đổi máy',
-      'Ưu tiên giờ vàng',
-    ],
-  },
-  {
-    name: 'All Night',
-    price: 120000,
-    unit: '/đêm',
-    period: '22h - 8h sáng — Cày trắng đêm',
-    hot: false,
-    features: [
-      'Trọn đêm không giới hạn',
-      'PS5 Pro + ghế gaming',
-      'Tặng mì ly + nước',
-      'Phòng riêng nếu có sẵn',
-    ],
-  },
-  {
     name: 'VIP Room',
-    price: 80000,
+    price: 69000,
     unit: '/giờ',
-    period: 'Phòng riêng — 4-6 người',
+    period: 'Giờ lẻ',
     hot: false,
-    features: [
-      'TV 65" 4K + sound bar',
-      '4 tay cầm DualSense',
-      'Điều hòa + sofa',
-      'Free wifi + nước lọc',
-    ],
+    features: [...combo([199, 299, 199, 309, 429]), ...VIP_PERKS],
+  },
+  {
+    name: 'VVIP Room',
+    price: 79000,
+    unit: '/giờ',
+    period: 'Giờ lẻ',
+    hot: false,
+    features: [...combo([219, 359, 229, 359, 479]), ...VVIP_PERKS],
+  },
+  {
+    name: 'Luxury Room PS5',
+    price: 89000,
+    unit: '/giờ',
+    period: 'Giờ lẻ',
+    hot: false,
+    features: [...combo([239, 399, 259, 409, 529]), ...LUXURY_PS5_PERKS],
+  },
+  {
+    name: 'Luxury Room PC',
+    price: 95000,
+    unit: '/giờ',
+    period: 'Giờ lẻ',
+    hot: false,
+    features: [...combo([239, 399, 259, 409, 529]), ...LUXURY_PC_PERKS],
+  },
+  {
+    name: 'Dorm (phòng chung)',
+    price: 39000,
+    unit: '/giờ',
+    period: 'Giờ lẻ',
+    hot: false,
+    features: ['Combo sáng (8h–13h): 99K'],
   },
 ];
 

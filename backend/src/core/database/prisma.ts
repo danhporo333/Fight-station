@@ -25,6 +25,8 @@ function createAdapter(databaseUrl: string): PrismaMariaDb {
     password: decodeURIComponent(url.password),
     database: url.pathname.replace(/^\//, ''),
     timezone: 'Z',
+    // Mặc định của driver chỉ 1 giây, không đủ khi function (Vercel) ở xa DB cloud
+    connectTimeout: 10_000,
     connectionLimit: 10,
   });
 }

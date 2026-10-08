@@ -28,6 +28,10 @@ export const ErrorCode = {
   GAME_CATEGORY_HAS_GAMES: 'GAME_005',
   GAME_BRANCH_NOT_FOUND: 'GAME_006',
 
+  // price-plan
+  PRICE_PLAN_NOT_FOUND: 'PRICE_001',
+  PRICE_PLAN_BRANCH_NOT_FOUND: 'PRICE_002',
+
   // menu (món và nhóm menu)
   MENU_ITEM_NOT_FOUND: 'MENU_001',
   MENU_CATEGORY_NOT_FOUND: 'MENU_002',

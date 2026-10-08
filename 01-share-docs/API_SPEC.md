@@ -89,6 +89,7 @@ Lỗi (`details` chỉ có khi lỗi validate, liệt kê từng trường):
 | `GAME_005` | 409 | Thể loại còn game, chuyển hoặc xóa game trước |
 | `GAME_006` | 400 | `branchIds` chứa chi nhánh không tồn tại |
 | `PRICE_001` | 404 | Không tìm thấy gói giá |
+| `PRICE_002` | 400 | `branchIds` chứa chi nhánh không tồn tại |
 | `MENU_001` | 404 | Không tìm thấy món |
 | `MENU_002` | 404 | Không tìm thấy nhóm menu |
 | `MENU_003` | 409 | Tên nhóm menu, hoặc tên món trong nhóm, đã tồn tại |
@@ -139,7 +140,7 @@ Cột Auth: **Công khai** = không cần token; **Admin** = owner hoặc staff;
 ### Price plan (bảng giá)
 | Method | Path | Mô tả | Auth |
 |---|---|---|---|
-| GET | `/price-plans` | Danh sách gói giá, kèm mảng `features` (đã xếp thứ tự) | Công khai |
+| GET | `/price-plans` | Danh sách gói giá, kèm mảng `features` (đã xếp thứ tự). Lọc: `branchId` (gói áp dụng ở chi nhánh đó, gồm gói áp dụng mọi chi nhánh); không có thì trả mọi gói | Công khai |
 | GET | `/price-plans/:id` | Chi tiết một gói | Công khai |
 | POST | `/price-plans` | Thêm gói kèm `features` | Owner |
 | PUT | `/price-plans/:id` | Sửa gói; nếu gửi `features` thì thay toàn bộ danh sách | Owner |
@@ -233,7 +234,7 @@ Chỉ gửi trường cần đổi. `gameCategoryIds` nếu có sẽ **thay toà
   "features": ["Phòng riêng", "Tặng 1 nước", "Ưu tiên đặt máy"] }
 // 201: trả gói vừa tạo, features thành [{ "id": 11, "content": "Phòng riêng", "sortOrder": 0 }, ...]
 ```
-Thứ tự `features` trong mảng quyết định `sortOrder`. Lỗi: `403 AUTH_005` (staff gọi) · `400 COMMON_001` (vd `priceVnd` âm hoặc là số thập phân).
+Thứ tự `features` trong mảng quyết định `sortOrder`. `branchIds`: mảng id các chi nhánh áp dụng (1–100 id, id trùng tự gộp); `null` hoặc không gửi = áp dụng **mọi** chi nhánh, kể cả chi nhánh mở sau này; `[]` bị từ chối. Một gói chọn được nhiều chi nhánh nên các chi nhánh giá giống nhau chỉ cần một gói. Response có `branches: [{ id, name }]` (xếp theo thứ tự hiển thị của chi nhánh; mảng rỗng = mọi chi nhánh). Lọc `GET /price-plans?branchId=4` trả gói có chi nhánh 4 cộng các gói áp dụng mọi chi nhánh. `PUT` gửi `branchIds` thì thay toàn bộ danh sách (`null` = chuyển về mọi chi nhánh), không gửi thì giữ nguyên. `features`: 0–10 dòng, mỗi dòng 1–255 ký tự (`[]` hợp lệ); `description` (≤ 255) là dòng phụ dưới giá, vd "Giờ thường — Thứ 2 đến Thứ 6"; `unit` mặc định `/giờ`. Lỗi: `403 AUTH_005` (staff gọi) · `400 COMMON_001` (vd `priceVnd` âm hoặc là số thập phân) · `400 PRICE_002` có chi nhánh không tồn tại.
 
 ## 8. Bổ sung riêng cho Express + Zod
 - Không dùng GraphQL, WebSocket hay gRPC: dữ liệu ít thay đổi, chỉ cần REST. Muốn cập nhật thời gian thực thì làm sau.

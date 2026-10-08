@@ -91,6 +91,9 @@ Mọi bảng đều có 3 cột chung, **không lặp lại** ở các bảng d�
 | | sort_order | INT | NOT NULL, DEFAULT 0 |
 | | is_active | bool | NOT NULL, DEFAULT 1 |
 | | **Index** | — | `idx_price_plan_is_active_sort_order` |
+| **price_plan_branch** | price_plan_id | INT UNSIGNED | NOT NULL, FK → price_plan.id (CASCADE) |
+| | branch_id | INT UNSIGNED | NOT NULL, FK → branch.id (CASCADE) |
+| | **Index** | — | `idx_price_plan_branch_price_plan_id_branch_id` (UNIQUE), `idx_price_plan_branch_branch_id` |
 | **price_plan_feature** | price_plan_id | INT UNSIGNED | NOT NULL, FK → price_plan.id |
 | | content | VARCHAR(255) | NOT NULL |
 | | sort_order | INT | NOT NULL, DEFAULT 0 |
@@ -138,6 +141,8 @@ erDiagram
   branch ||--o{ branch_game : "có"
   game ||--o{ branch_game : "có ở"
   price_plan ||--o{ price_plan_feature : "gồm"
+  branch ||--o{ price_plan_branch : "có"
+  price_plan ||--o{ price_plan_branch : "áp dụng ở"
   menu_category ||--o{ menu_item : "gồm"
   shop
   promotion
@@ -146,11 +151,12 @@ erDiagram
 **Quy ước quan hệ**
 - 1-n: khóa ngoại nằm ở bảng con, NOT NULL, luôn có index đặt tên theo quy ước.
 - n-n: dùng bảng nối khai báo rõ (không dùng bảng ẩn của Prisma), có `id` riêng và UNIQUE trên cặp khóa.
-- ON DELETE: bảng cha chứa dữ liệu thật (`game_category`, `menu_category`) dùng `RESTRICT`, phải chuyển hoặc xóa con trước để khỏi mất dữ liệu nhầm. Bảng con thuần phụ thuộc (`price_plan_feature`, `branch_game`) dùng `CASCADE`. Bảng nối `game_game_category`: phía `game` CASCADE (xóa game thì gỡ thể loại), phía `game_category` RESTRICT (không xóa được thể loại còn game). ON UPDATE giữ mặc định `CASCADE`.
+- ON DELETE: bảng cha chứa dữ liệu thật (`game_category`, `menu_category`) dùng `RESTRICT`, phải chuyển hoặc xóa con trước để khỏi mất dữ liệu nhầm. Bảng con thuần phụ thuộc (`price_plan_feature`, `branch_game`, `price_plan_branch`) dùng `CASCADE`. Bảng nối `game_game_category`: phía `game` CASCADE (xóa game thì gỡ thể loại), phía `game_category` RESTRICT (không xóa được thể loại còn game). ON UPDATE giữ mặc định `CASCADE`.
 
 **Quan hệ giữa các feature**
 - Game ↔ Cửa hàng & chi nhánh: qua `branch_game`. **Game không có dòng nào trong `branch_game` = có ở mọi chi nhánh** (kể cả chi nhánh mở sau này); chỉ game giới hạn chi nhánh mới có dòng. Xóa chi nhánh mà game chỉ có ở chi nhánh đó thì game thành "mọi chi nhánh" (CASCADE xóa dòng nối).
-- Bảng giá, Menu, Khuyến mãi độc lập, áp dụng toàn hệ thống. Cần giá riêng từng chi nhánh thì thêm `branch_id` (NULL = áp dụng chung) vào `price_plan`, `menu_item`.
+- Bảng giá ↔ Chi nhánh: qua `price_plan_branch` (nhiều-nhiều, thêm 2026-10-08 vì bảng giá thật hiện chỉ có ở một chi nhánh và nhiều chi nhánh giá giống nhau). **Gói không có dòng nào trong `price_plan_branch` = áp dụng mọi chi nhánh** (kể cả chi nhánh mở sau này), giống `branch_game`. Chi nhánh X thấy gói có dòng của X cộng các gói áp dụng mọi chi nhánh. Xóa chi nhánh mà gói chỉ áp dụng ở chi nhánh đó thì gói thành "mọi chi nhánh" (CASCADE xóa dòng nối).
+- Menu, Khuyến mãi độc lập, áp dụng toàn hệ thống. Cần giá riêng từng chi nhánh cho menu thì làm tương tự: thêm `branch_id` (NULL = áp dụng chung) vào `menu_item`.
 - `admin_user` chưa có khóa ngoại nào (chưa ghi lại ai đã sửa gì).
 
 ## 4. Quy ước

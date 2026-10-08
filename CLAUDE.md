@@ -39,4 +39,5 @@ Skill chung ở `.claude/skills/`; skill backend ở `backend/.claude/skills/`; 
 
 - Không viết thông tin chi tiết vào đây. Viết vào đúng nơi: tính năng → `context.md` của tính năng; quy ước backend/frontend → `CLAUDE.md` hoặc `docs/` của phần đó; API và DB → `01-share-docs/`. Ở đây chỉ thêm một dòng trỏ tới.
 - Trước khi sửa một tính năng, đọc `context.md` của nó; sửa xong thì cập nhật `context.md` theo code thật. Nếu tính năng có bài `docs/explain/{code,flow}/<tên>.md` thì hỏi user có chạy lại `/explain` không; chưa thì chèn dòng "⚠️ Code đã thay đổi ngày …, bài có thể đã cũ" đầu bài.
+- Trạng thái tính năng trong `README.md` (cột "Trạng thái" và dấu tick ở "Lộ trình") tự cập nhật từ dòng đầu `✅`/`⏳` của `context.md` ở BE và FE, nhờ hook `Stop` chạy `.claude/hooks/update-readme.mjs`. Xong một tính năng chỉ cần đổi đúng dòng đó trong `context.md`; không sửa tay các ô có comment `<!-- status:... -->`, `<!-- roadmap:... -->`.
 - Khi tạo, đổi tên hoặc xóa skill trong `.claude/skills/`, cập nhật "Available Skills" và "Skill Routing" (skill dự kiến ghi kèm "(chưa có)").

@@ -1,258 +1,99 @@
-# Giải thích code: feature `auth` (Backend)
+> **Phía:** Backend (BE) · **Chế độ:** `code` · **Target:** feature `auth`
+> **Ngày viết:** 2026-10-08
+> **Tài liệu đã đọc:** `backend/src/features/auth/context.md`, `backend/docs/BE-ARCHITECTURE.md` (kèm `BE-PROJECT-RULES.md`, `API_SPEC.md`, `DATABASE.md` để đối chiếu mã lỗi, endpoint, bảng)
+> Bài này dựa trên tài liệu, không quét source. Nếu code `features/auth` đổi sau ngày trên thì bài có thể đã cũ.
 
-| | |
-|---|---|
-| **Phía** | BE (backend) |
-| **Chế độ** | `code` |
-| **Target** | `auth` |
-| **Ngày viết** | 2026-10-07 |
-| **Tài liệu đã đọc** | `backend/src/features/auth/context.md` (trạng thái ✅ Đã cài đặt 2026-10-06), `backend/docs/BE-ARCHITECTURE.md` |
+## 📁 Feature: auth (đăng nhập trang quản trị)
 
-> Bài viết dựa trên tài liệu tại ngày viết. Nếu code `auth` thay đổi sau đó, đối chiếu lại với `context.md`.
+### Mục đích
+`auth` cho chủ quán và nhân viên đăng nhập trang quản trị bằng **JWT**, xem tài khoản đang đăng nhập và đổi mật khẩu. Ngoài ra nó cung cấp "người gác cổng" (`AdminLookup` + `auth-guards`) để mọi route thêm/sửa/xóa của feature khác biết ai đang gọi và có đủ quyền không.
 
----
+Ví dụ đời thường: quán có một **bảo vệ ở cửa kho**. Khách xem menu, game, bảng giá thì vào tự do (GET công khai). Muốn vào kho sửa giá thì phải qua bảo vệ: đưa thẻ (token), bảo vệ tra lại sổ nhân sự (database) xem thẻ còn hiệu lực và người đó còn làm không, rồi mới cho vào.
 
-## Tổng quan: feature này làm gì?
+### Vị trí trong dự án
+- Feature: `auth`, bảng `admin_user` (model `AdminUser`, enum `AdminRole { owner, staff }`)
+- Các tầng: routes → controller → service → repository (đúng luồng chung của dự án)
 
-`auth` (viết tắt của *authentication*: xác thực) trả lời hai câu hỏi cho trang quản trị:
-
-1. **Bạn là ai?** Đăng nhập bằng tên và mật khẩu, nhận về một "thẻ ra vào" gọi là **JWT** (JSON Web Token).
-2. **Bạn được làm gì?** Mỗi lần gọi API quản trị, server xem thẻ và kiểm tra quyền: *chủ quán* (owner) hay *nhân viên* (staff).
-
-Ví dụ đời thường: giống **thẻ nhân viên** ở quán. Quầy lễ tân (API đăng nhập) kiểm tra danh tính rồi phát thẻ có hạn 1 ngày. Mỗi cửa phòng (route quản trị) có bảo vệ quét thẻ, và **gọi điện hỏi lại văn phòng** xem người này còn làm ở quán không (đọc lại database), chứ không tin hoàn toàn vào tấm thẻ.
-
-Feature có 3 endpoint (dưới `/api/v1`):
-
+### Endpoint (dưới `/api/v1`)
 | Method | Path | Làm gì | Ai gọi được |
 |---|---|---|---|
-| POST | `/auth/login` | Đăng nhập, nhận `accessToken` | Ai cũng gọi được (giới hạn 10 lần **sai** / 15 phút / IP) |
-| GET | `/auth/me` | Xem tài khoản đang đăng nhập | Admin (owner hoặc staff) |
-| PUT | `/auth/password` | Đổi mật khẩu của chính mình | Admin |
+| POST | `/auth/login` | Trả `{ accessToken, expiresIn, admin: { id, username, role } }`, kèm `Cache-Control: no-store` | Công khai, giới hạn 10 lần **sai** / 15 phút / IP |
+| GET | `/auth/me` | Thông tin tài khoản: `id, username, role, isActive, lastLoginAt, createdAt` | Admin (owner hoặc staff) |
+| PUT | `/auth/password` | Nhận `{ currentPassword, newPassword }`, trả `data: null` | Admin |
 
-Dữ liệu nằm ở bảng `admin_user` (cột chính: `username`, `password_hash`, `role`, `is_active`, `last_login_at`).
+### Phân tích từng file
 
-### Các file và tầng
+**`auth.dto.ts`**: chứa Zod schema `loginSchema` và `changePasswordSchema`. Mật khẩu **không bị trim** (dấu cách đầu/cuối có thể là một phần mật khẩu) và tối đa 200 ký tự, để không ai gửi mật khẩu dài cả MB bắt server băm tốn sức. Route gọi `validate(schema)` nên controller và service chỉ nhận dữ liệu đã hợp lệ.
 
-Backend chia code theo **tầng** (layer), mỗi tầng một việc. Một request đi theo một chiều:
+**`auth.entity.ts`**: định nghĩa kiểu `Admin`, `AdminSummary`, `LoginResult` và hằng `ADMIN_SELECT`. `ADMIN_SELECT` là danh sách cột được phép lấy ra, **không có `passwordHash`**, nên dù lỡ tay trả cả object ra response thì hash cũng không lộ.
 
-```
-routes → controller → service → repository → Prisma → MySQL
-```
+**`auth.repository.ts`**: nơi duy nhất dùng Prisma của feature. `passwordHash` chỉ được đọc ở hai hàm riêng: `findCredentialsByUsername` (lúc đăng nhập) và `findPasswordHashById` (lúc đổi mật khẩu). Các truy vấn khác dùng `ADMIN_SELECT`.
 
-| File | Tầng | Một câu |
+**`auth.service.ts`**: chứa business rule.
+- `login`: kiểm tra username và mật khẩu, kiểm tra tài khoản có bị khóa, ký JWT, cập nhật `last_login_at`.
+- `getMe`: lấy thông tin tài khoản đang đăng nhập.
+- `changePassword`: kiểm tra mật khẩu hiện tại rồi lưu hash mới.
+- `findById`: để `AuthService` thỏa interface `AdminLookup`, giúp guard tra admin trong DB.
+
+**`auth.controller.ts` + `auth.routes.ts`**: controller chỉ đọc `req`, gọi service, trả `ok()`. Không logic, không `try/catch` (Express 5 tự chuyển lỗi async sang `error-handler`). Route được tạo bằng `createAuthRouter(controller, guards)`, nhận `guards` từ `app.ts`.
+
+**`index.ts`**: public API của feature, export `AuthRepository`, `AuthService`, `AuthController`, `createAuthRouter`. Feature khác chỉ được import qua file này.
+
+**Code dùng chung (nằm ở `src/shared/`, không thuộc riêng auth)**
+- `utils/password.ts`: băm và kiểm tra mật khẩu bằng **argon2id**.
+- `utils/jwt.ts`: ký và đọc JWT, thuật toán **HS256**, bí mật là `JWT_SECRET`.
+- `middlewares/auth-guards.ts`: `requireAdmin`, `requireOwner`, `optionalAdmin`.
+- `middlewares/cache-control.ts`: đặt `no-store` cho response quản trị, `publicCache` cho GET công khai.
+
+### Luồng đăng nhập (tóm tắt)
+1. `POST /auth/login` đi qua rate limit, rồi `validate(loginSchema)`.
+2. Service tìm tài khoản theo username và verify mật khẩu.
+3. Đúng mật khẩu mà `is_active = 0` thì trả `403 AUTH_004`.
+4. Ký JWT `{ sub: String(id), role }`, hết hạn theo `JWT_EXPIRES_IN` (mặc định `1d`, tức `expiresIn: 86400` giây).
+5. Cập nhật `last_login_at`, ghi log `auth.login`, trả token.
+
+### 📏 Quy tắc nghiệp vụ đáng nhớ
+- **Sai username hay sai mật khẩu đều trả `401 AUTH_001` cùng một thông báo.** Kẻ tấn công không biết username có tồn tại không. Username không tồn tại vẫn verify với một **hash giả** để thời gian phản hồi giống nhau (chống dò username qua thời gian).
+- **Kiểm tra khóa (`AUTH_004`) sau khi mật khẩu đúng.** Người không biết mật khẩu thì không biết tài khoản có bị khóa hay không.
+- **Không tin token về role và trạng thái.** Mỗi request quản trị, guard đọc lại `admin_user` trong DB. Vì vậy khóa tài khoản hoặc đổi quyền có hiệu lực **ngay**, không phải chờ token hết hạn. Admin bị xóa khỏi DB thì token cũ trả `AUTH_002`.
+- **Không có refresh token.** Token sống 1 ngày, hết hạn thì đăng nhập lại (chỉ một chủ quán dùng nên chấp nhận được).
+- **Đổi mật khẩu:** sai `currentPassword` trả `400 COMMON_001` kèm `details` trỏ vào field `currentPassword`. Token cũ **vẫn dùng được** tới khi hết hạn.
+- **Log:** `auth.login`, `auth.login_failed` (có username, **không có mật khẩu**), `auth.password_changed`.
+
+### Mã lỗi liên quan
+| Mã | HTTP | Khi nào |
 |---|---|---|
-| `auth.routes.ts` | routes | Gắn URL với hàm xử lý, kèm "bảo vệ" (guard, validate) |
-| `auth.controller.ts` | controller | Nhận request, gọi service, trả response. Không có logic |
-| `auth.service.ts` | service | **Logic nghiệp vụ**: kiểm tra mật khẩu, khóa tài khoản, ký token |
-| `auth.repository.ts` | repository | Nơi **duy nhất** đọc/ghi bảng `admin_user` qua Prisma |
-| `auth.dto.ts` | dto | Luật kiểm tra dữ liệu gửi lên (Zod) |
-| `auth.entity.ts` | entity | Hình dạng dữ liệu trả ra API (không bao giờ có mật khẩu) |
-| `index.ts` | public API | Chỉ export những gì `app.ts` cần để nối dây |
+| `AUTH_001` | 401 | Sai username hoặc mật khẩu |
+| `AUTH_002` | 401 | Thiếu token, token sai định dạng/chữ ký, hoặc admin không còn trong DB |
+| `AUTH_003` | 401 | Token hết hạn |
+| `AUTH_004` | 403 | Tài khoản bị khóa (chỉ báo khi mật khẩu đúng) |
+| `AUTH_005` | 403 | Staff gọi API chỉ dành cho owner |
+| `COMMON_001` | 400 | Dữ liệu sai, hoặc sai mật khẩu hiện tại khi đổi mật khẩu |
+| `COMMON_004` | 429 | Đăng nhập sai quá 10 lần / 15 phút / IP |
 
-Code dùng chung nằm ngoài feature, ở `src/shared/`: `utils/password.ts`, `utils/jwt.ts`, `middlewares/auth-guards.ts`, `middlewares/cache-control.ts`.
+### Cách feature khác dùng quyền
+`app.ts` tạo `guards = createAuthGuards(authService)` một lần rồi truyền vào router của từng feature: `createXxxRouter(controller, guards)`. Feature khác **không import** gì từ auth, nên không bị phụ thuộc vòng.
+- `guards.requireAdmin`: owner hoặc staff đều qua. Gắn `req.admin`, đặt `Cache-Control: no-store`.
+- `guards.requireOwner`: chỉ owner; staff nhận `403 AUTH_005`.
+- `guards.optionalAdmin`: có header `Authorization` thì xác thực, không có thì cho qua. Dùng cho `includeInactive=true` ở các GET công khai (chỉ admin mới thấy bản ghi đang ẩn).
+- Controller lấy admin bằng `getRequestAdmin(req)`.
 
----
+Ví dụ: tạo gói giá (`POST /price-plans`) cần `requireOwner`; thêm game (`POST /games`) chỉ cần `requireAdmin`.
 
-## 📁 File: `auth.dto.ts`
-
-### Mục đích
-Khai báo **luật cho dữ liệu người dùng gửi lên**, để controller và service chỉ nhận dữ liệu đã hợp lệ.
-
-### Vị trí trong dự án
-- Feature: `auth`
-- Tầng: dto (Data Transfer Object: "gói dữ liệu" đi qua API)
-
-### Phân tích
-
-**Các schema (Zod)**
-- `loginSchema`: `username` (bỏ khoảng trắng 2 đầu, 1–50 ký tự), `password` (1–200 ký tự).
-- `changePasswordSchema`: `currentPassword`, `newPassword` (≥ 8 ký tự), và mật khẩu mới **phải khác** mật khẩu cũ.
-
-**Vì sao mật khẩu không bị trim (cắt khoảng trắng)?** Khoảng trắng có thể là một phần mật khẩu thật. Cắt đi sẽ khiến người dùng không đăng nhập được.
-
-**Vì sao giới hạn 200 ký tự?** Hàm hash mật khẩu (argon2) tốn tài nguyên; mật khẩu dài bất thường có thể bị lợi dụng để làm server chậm.
-
-### 📏 Quy tắc dự án liên quan
-- Validate bằng Zod ngay ở route (middleware `validate()`); sai → `400 COMMON_001` kèm `details` chỉ ra ô nào sai.
+### Seed tài khoản owner
+`npx prisma db seed` tạo owner từ `SEED_OWNER_USERNAME` / `SEED_OWNER_PASSWORD` trong `.env`, **chỉ khi DB chưa có tài khoản owner nào**. Seed không tìm theo username, vì chủ quán có thể đổi tên đăng nhập (vd `owner` → `admin`); nếu seed tìm theo tên thì sẽ tạo thêm một owner mới dùng mật khẩu trong `.env` (chuyện này đã xảy ra ngày 2026-10-07 và đã được sửa).
 
 ### 💡 Điểm cần nhớ
-- Thông báo lỗi trong schema là tiếng Việt và **frontend dùng lại đúng các luật này** (xem bài FE).
+- `passwordHash` chỉ xuất hiện ở hai hàm repository; mọi chỗ khác dùng `ADMIN_SELECT`.
+- Quyền được kiểm tra lại từ DB ở **mỗi request**, không dựa vào nội dung token.
+- Thông báo lỗi đăng nhập cố ý mơ hồ để không lộ thông tin cho kẻ dò.
+- Thêm route quản trị mới: chỉ cần nhận `guards` và gắn `guards.requireAdmin` hoặc `guards.requireOwner` trước `validate(...)`.
 
----
+### Chưa làm
+- Test tự động (`/be-test auth`); hiện mới kiểm tra bằng gọi API thật (21 tình huống và rate limit đều đúng).
+- Quản lý tài khoản staff (thêm/khóa/xóa): `API_SPEC.md` chưa có endpoint, hiện chỉ sửa trực tiếp trong DB.
 
-## 📁 File: `auth.entity.ts`
-
-### Mục đích
-Định nghĩa **dữ liệu tài khoản được phép trả ra ngoài**.
-
-### Vị trí trong dự án
-- Feature: `auth`
-- Tầng: entity
-
-### Phân tích
-- `Admin`: `id`, `username`, `role`, `isActive`, `lastLoginAt`, `createdAt`. **Không có `passwordHash`.**
-- `AdminSummary`: bản rút gọn `{ id, username, role }`, nằm trong response đăng nhập.
-- `LoginResult`: `{ accessToken, expiresIn, admin }`.
-- `ADMIN_SELECT`: danh sách cột được phép đọc từ DB. Repository dùng nó làm `select`, nên **cột mật khẩu không bao giờ lọt ra** do quên.
-
-### 💡 Điểm cần nhớ
-- Cách chặn rò rỉ mật khẩu tốt nhất là **không đọc nó ra** ngay từ đầu, thay vì đọc ra rồi nhớ xóa.
-
----
-
-## 📁 File: `auth.repository.ts`
-
-### Mục đích
-Nơi **duy nhất** của feature được nói chuyện với database (bảng `admin_user`).
-
-### Vị trí trong dự án
-- Feature: `auth`
-- Tầng: repository
-
-### Phân tích
-
-**Class `AuthRepository`** nhận Prisma qua constructor (gọi là *dependency injection*: được "đưa" công cụ từ bên ngoài, không tự tạo). Nhờ vậy khi test có thể đưa một database giả.
-
-**Các method**
-- `findById(id)`: tìm tài khoản theo id, chỉ lấy cột trong `ADMIN_SELECT`.
-- `findCredentialsByUsername(username)`: lấy tài khoản **kèm** `passwordHash`, chỉ dùng khi cần so mật khẩu lúc đăng nhập.
-- `findPasswordHashById(id)`: lấy hash để so mật khẩu cũ khi đổi mật khẩu.
-- `updateLastLogin(id, at)`: ghi thời điểm đăng nhập gần nhất.
-- `updatePasswordHash(id, hash)`: lưu mật khẩu mới (đã hash).
-
-### 📏 Quy tắc dự án liên quan
-- Chỉ repository được dùng Prisma. Repository **không** chứa logic nghiệp vụ và **không** ném lỗi HTTP.
-
-### 💡 Điểm cần nhớ
-- `passwordHash` chỉ rời repository ở 2 method có tên nói rõ điều đó, và không bao giờ rời service.
-
----
-
-## 📁 File: `auth.service.ts`
-
-### Mục đích
-Chứa **toàn bộ logic nghiệp vụ** của đăng nhập và đổi mật khẩu. Đây là file quan trọng nhất của feature.
-
-### Vị trí trong dự án
-- Feature: `auth`
-- Tầng: service
-
-### Phân tích
-
-**Class `AuthService`** nhận `AuthRepository` qua constructor. Nó cũng đóng vai trò `AdminLookup` (cách tra cứu admin) mà guard trong `shared/` cần (xem phần guard bên dưới).
-
-**Các method**
-
-- `login({ username, password })`, từng bước:
-  1. Tìm tài khoản theo username.
-  2. **Luôn** so mật khẩu, kể cả khi không có tài khoản (so với một "hash giả"). Nhờ vậy thời gian phản hồi giống nhau, kẻ xấu không đoán được username nào tồn tại.
-  3. Sai username **hoặc** sai mật khẩu → cùng một lỗi `401 AUTH_001` "Tên đăng nhập hoặc mật khẩu không đúng".
-  4. Mật khẩu đúng nhưng tài khoản bị khóa (`is_active = 0`) → `403 AUTH_004`. Kiểm tra khóa **sau** mật khẩu, nên người không biết mật khẩu không biết tài khoản bị khóa.
-  5. Ghi `last_login_at`, ký JWT, trả `{ accessToken, expiresIn, admin }`.
-- `getMe(adminId)`: trả thông tin tài khoản; không còn tài khoản → `AUTH_002`.
-- `changePassword(adminId, dto)`: so mật khẩu hiện tại; sai → `400 COMMON_001` kèm `details` ở ô `currentPassword` (để giao diện báo đúng ô). Đúng → hash mật khẩu mới và lưu.
-- `findById(id)`: dùng cho guard kiểm tra quyền mỗi request.
-
-**Log (nhật ký)**: `auth.login`, `auth.login_failed` (có username, **không** có mật khẩu), `auth.password_changed`.
-
-### 📏 Quy tắc dự án liên quan
-- Service ném `AppError` (`UnauthorizedError`, `ForbiddenError`, `ValidationError`); không tự dựng response JSON.
-- Service không dùng Prisma trực tiếp, chỉ gọi repository.
-
-### 💡 Điểm cần nhớ
-- Hai kỹ thuật bảo mật: **cùng một thông báo lỗi** và **hash giả**, đều để không lộ tài khoản nào tồn tại.
-- Đổi mật khẩu **không** làm token cũ mất hiệu lực; token vẫn dùng được tới khi hết hạn (mặc định 1 ngày).
-
----
-
-## 📁 File: `auth.controller.ts`
-
-### Mục đích
-Cầu nối giữa HTTP và service: lấy dữ liệu từ request, gọi service, trả response.
-
-### Vị trí trong dự án
-- Feature: `auth`
-- Tầng: controller
-
-### Phân tích
-- `login`: gọi `service.login(body)` → `200` với kết quả.
-- `me`: lấy admin đang đăng nhập bằng `getRequestAdmin(req)` → `service.getMe(id)`.
-- `changePassword`: `service.changePassword(id, body)` → `200` với `data: null`.
-
-### 📏 Quy tắc dự án liên quan
-- Controller **không** có logic, **không** `try/catch`. Express 5 tự chuyển lỗi tới error-handler.
-- Response luôn qua helper `ok()`, nên định dạng luôn là `{ success, data }`.
-
----
-
-## 📁 File: `auth.routes.ts`
-
-### Mục đích
-Gắn URL với controller, kèm các bước kiểm tra trước khi vào controller.
-
-### Vị trí trong dự án
-- Feature: `auth`
-- Tầng: routes
-
-### Phân tích
-Hàm `createAuthRouter(controller, guards)` trả về một router:
-
-| Route | Thứ tự các bước |
-|---|---|
-| `POST /login` | giới hạn số lần sai → không cache → `validate(loginSchema)` → `controller.login` |
-| `GET /me` | `guards.requireAdmin` → `controller.me` |
-| `PUT /password` | `guards.requireAdmin` → `validate(changePasswordSchema)` → `controller.changePassword` |
-
-**Middleware** là hàm chạy trước khi request tới controller, như các trạm kiểm soát xếp hàng.
-
-### 💡 Điểm cần nhớ
-- `guards` được **truyền vào** từ `app.ts`, không import thẳng. Các feature khác (game, menu...) cũng nhận `guards` theo cách này.
-
----
-
-## 📁 Code dùng chung mà `auth` cung cấp hoặc dùng
-
-### `shared/middlewares/auth-guards.ts`: "bảo vệ" của mọi route quản trị
-`createAuthGuards(lookup)` tạo 3 guard:
-
-| Guard | Cho qua khi | Từ chối |
-|---|---|---|
-| `requireAdmin` | Token hợp lệ, tài khoản còn hoạt động | Không/sai token → `401 AUTH_002`; hết hạn → `401 AUTH_003`; bị khóa → `403 AUTH_004` |
-| `requireOwner` | Như trên **và** role là `owner` | Staff → `403 AUTH_005` |
-| `optionalAdmin` | Không có token → cho qua; có token → kiểm tra như `requireAdmin` | Dùng cho tham số `includeInactive=true` |
-
-Điểm quan trọng: guard **đọc lại database mỗi request** (role và `is_active` lấy từ DB, không tin token). Chủ quán khóa một nhân viên thì có hiệu lực **ngay lập tức**, không phải chờ token hết hạn.
-
-**Vì sao guard nằm ở `shared/` mà không ở `features/auth/`?** Vì mọi feature đều cần nó, và quy tắc dự án cấm `shared/` import `features/`. Nên guard chỉ biết một *interface* `AdminLookup`; `app.ts` đưa `AuthService` vào làm `AdminLookup`.
-
-### `shared/utils/password.ts`
-- `hashPassword(plain)`: hash bằng **argon2id** (thuật toán hash mật khẩu hiện đại, cố tình chậm để chống dò).
-- `verifyPassword(hash, plain)`: so mật khẩu; truyền `null` thì so với hash giả (kỹ thuật ở `login`).
-
-### `shared/utils/jwt.ts`
-- `signAccessToken({ sub, role })`: ký token HS256, hạn theo `JWT_EXPIRES_IN` (mặc định `1d` → `expiresIn: 86400` giây).
-- `verifyAccessToken(token)`: kiểm tra chữ ký và hạn, phân biệt "hết hạn" và "không hợp lệ".
-- `sub` (id admin) được lưu dạng chuỗi vì thư viện `jsonwebtoken` yêu cầu vậy, đọc ra thì đổi lại thành số.
-
-### `shared/middlewares/cache-control.ts`
-- `noStore`: response chứa token hoặc dữ liệu quản trị → trình duyệt không được lưu cache.
-- `publicCache`: GET công khai được cache 60 giây (các feature khác dùng).
-
----
-
-## 🔗 Liên kết
-
-- **Được gọi bởi:** `src/app.ts` (nối dây: `AuthRepository` → `AuthService` → `AuthController`, tạo `guards`, gắn router ở `/api/v1/auth`).
-- **Gọi tới:** Prisma (bảng `admin_user`), `shared/utils/password.ts`, `shared/utils/jwt.ts`, logger.
-- **Dữ liệu ban đầu:** `npx prisma db seed` tạo tài khoản owner từ `SEED_OWNER_USERNAME` / `SEED_OWNER_PASSWORD` trong `.env`.
-- **Tài liệu:** `backend/src/features/auth/context.md`; `BE-ARCHITECTURE.md` mục 3 (giải phẫu feature), mục 5 (giao tiếp giữa feature), mục 8 (chuỗi middleware); `API_SPEC.md` mục 2 (xác thực), 7.1 và 7.1b.
-
-## 💡 Điểm cần nhớ (cả feature)
-- Một request quản trị: **guard** (bạn là ai, được làm gì) → **validate** (dữ liệu đúng chưa) → controller → service → repository.
-- Mật khẩu: hash argon2id, không trim, không bao giờ trả ra hay ghi log.
-- Lỗi đăng nhập luôn mơ hồ có chủ đích (`AUTH_001`) để không lộ thông tin.
-- Chưa có: test tự động, API quản lý tài khoản nhân viên.
-
----
-
-Xem phần còn lại: [Giải thích code `auth` phía Frontend](../../../../frontend/docs/explain/code/auth.md)
+### 🔗 Liên kết
+- Được gọi bởi: `app.ts` (nối dây `AuthRepository → AuthService → AuthController`, tạo `guards`); mọi router quản trị của các feature khác dùng `guards`.
+- Gọi tới: `shared/utils/password.ts`, `shared/utils/jwt.ts`, `core/database/prisma.ts` (qua repository), `core/logger`.
+- Tài liệu: `backend/src/features/auth/context.md`; `API_SPEC.md` mục 2 (xác thực), mục 5 (mã lỗi), mục 7.1 và 7.1b (chi tiết endpoint); `DATABASE.md` bảng `admin_user`; `BE-ARCHITECTURE.md` mục 3 (giải phẫu feature), mục 5 (giao tiếp giữa feature), mục 8 (chuỗi middleware).

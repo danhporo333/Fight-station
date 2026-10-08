@@ -17,6 +17,18 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/update-readme.mjs\" 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "Cập nhật trạng thái tính năng trong README..."
+          }
+        ]
+      }
     ]
   }
 }

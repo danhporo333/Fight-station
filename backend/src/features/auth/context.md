@@ -44,7 +44,7 @@ Dùng chung (ở `src/shared/`): `utils/password.ts` (argon2id), `utils/jwt.ts` 
 - Controller lấy admin bằng `getRequestAdmin(req)`. GET công khai gắn `publicCache`.
 
 ## Seed
-`npx prisma db seed` tạo owner từ `SEED_OWNER_USERNAME` / `SEED_OWNER_PASSWORD` (trong `.env`); username đã có thì bỏ qua.
+`npx prisma db seed` tạo owner từ `SEED_OWNER_USERNAME` / `SEED_OWNER_PASSWORD` (trong `.env`) **chỉ khi DB chưa có tài khoản owner nào**. Không tìm theo username: chủ quán đổi tên đăng nhập (vd `owner` → `admin`) mà seed tìm theo tên sẽ tạo thêm một owner mới dùng mật khẩu trong `.env` (đã xảy ra 2026-10-07, đã xóa tài khoản thừa và sửa seed).
 
 ## Chưa làm
 - Test tự động (`/be-test auth`).

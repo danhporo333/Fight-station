@@ -4,7 +4,7 @@ Website cho quán chơi game **PS5**: khách xem thông tin quán, danh sách ga
 
 Giao diện tông **cam**, hiện đại, dùng tốt trên điện thoại.
 
-> **Trạng thái:** đang phát triển. Đã xong khung dự án và tính năng **đăng nhập quản trị**, **thông tin quán**, **chi nhánh** và **game** (backend + frontend). Các tính năng nội dung đang được làm lần lượt (xem [Lộ trình](#lộ-trình)).
+> **Trạng thái:** đang phát triển, các tính năng được làm lần lượt. Tiến độ từng tính năng xem cột "Trạng thái" ở [Tính năng](#tính-năng) và [Lộ trình](#lộ-trình); hai chỗ này tự cập nhật theo `context.md` của từng tính năng (xem [Quy ước khi đóng góp](#quy-ước-khi-đóng-góp)).
 
 ---
 
@@ -12,13 +12,15 @@ Giao diện tông **cam**, hiện đại, dùng tốt trên điện thoại.
 
 | Tính năng | Khách xem | Quản trị | Trạng thái |
 |---|---|---|---|
-| Đăng nhập, phân quyền chủ quán / nhân viên, đổi mật khẩu | — | ✔ | ✅ Xong |
-| Thông tin quán: giờ mở cửa, hotline, mạng xã hội | ✔ | Chủ quán sửa | ✅ Xong |
-| Chi nhánh: địa chỉ, bản đồ, số máy PS5, phòng VIP | ✔ | Chủ quán sửa | ✅ Xong |
-| Game: lọc theo thể loại, chi nhánh, tìm theo tên | ✔ | ✔ | ✅ Xong |
-| Bảng giá giờ chơi theo gói | ✔ | Chủ quán sửa | ⏳ Chưa làm |
-| Menu đồ ăn, nước uống (có trạng thái "tạm hết") | ✔ | ✔ | ✅ Xong |
-| Khuyến mãi, sự kiện | ✔ | ✔ | ⏳ Chưa làm |
+| Đăng nhập, phân quyền chủ quán / nhân viên, đổi mật khẩu | — | ✔ | ✅ Xong <!-- status:auth --> |
+| Thông tin quán: giờ mở cửa, hotline, mạng xã hội | ✔ | Chủ quán sửa | ✅ Xong <!-- status:shop --> |
+| Chi nhánh: địa chỉ, bản đồ, số máy PS5, phòng VIP, phòng PC | ✔ | Chủ quán sửa | ✅ Xong <!-- status:branch --> |
+| Game: lọc theo thể loại, chi nhánh, tìm theo tên | ✔ | ✔ | ✅ Xong <!-- status:game --> |
+| Bảng giá giờ chơi theo loại phòng: giá giờ lẻ, combo, dịch vụ trong phòng; mỗi gói áp dụng một hoặc nhiều chi nhánh | ✔ | Chủ quán sửa | ✅ Xong <!-- status:price-plan --> |
+| Menu đồ ăn, nước uống (có trạng thái "tạm hết") | ✔ | ✔ | ✅ Xong <!-- status:menu --> |
+| Khuyến mãi, sự kiện | ✔ | ✔ | ⏳ Chưa làm <!-- status:promotion --> |
+
+Trang chủ có ba dải tự trượt liên tục (game, bảng giá, menu), rê chuột để dừng.
 
 **Phân quyền:** *chủ quán* (owner) làm được mọi việc; *nhân viên* (staff) quản lý game, menu, khuyến mãi nhưng không sửa thông tin quán, chi nhánh, bảng giá. Quyền luôn được kiểm tra ở backend, giao diện chỉ ẩn bớt nút.
 
@@ -174,6 +176,7 @@ Kiểm tra nhanh backend: `GET http://localhost:8000/health` → `{ "status": "o
 - **Commit** theo Conventional Commits, scope là tên tính năng: `feat(game): thêm lọc theo chi nhánh`, `fix(menu): sửa hiển thị giá`.
 - **Trước khi mở PR:** `lint`, `typecheck`, `test`, `build` phải qua; đổi API thì cập nhật `API_SPEC.md`; đổi schema thì cập nhật `DATABASE.md` và kèm migration; đổi hành vi tính năng thì cập nhật `context.md` của tính năng đó.
 - Không import file nội bộ của tính năng khác (chỉ qua `index.ts`); ESLint sẽ chặn.
+- **Cập nhật README:** cột "Trạng thái" và dấu tick ở "Lộ trình" tự điền từ dòng đầu (`✅ Đã cài đặt` / `⏳ Chưa cài đặt`) của `context.md` ở `backend/` và `frontend/`, một tính năng chỉ được tick khi cả hai phía xong. Chạy tay: `node .claude/hooks/update-readme.mjs`; khi dùng Claude Code, hook `Stop` trong `.claude/settings.json` chạy script sau mỗi lượt làm việc. Thêm tính năng mới thì thêm một hàng/dòng kèm comment `<!-- status:<tên> -->` / `<!-- roadmap:<tên> -->` (xem đầu file script). Phần mô tả còn lại viết tay.
 
 Dự án dùng [Claude Code](https://claude.com/claude-code) để hỗ trợ phát triển. Các skill nằm trong `.claude/skills/`, `backend/.claude/skills/`, `frontend/.claude/skills/` (ví dụ `/be-crud <feature>`, `/fe-crud <feature>` để sinh CRUD theo đúng quy ước), danh sách xem [CLAUDE.md](CLAUDE.md).
 
@@ -182,12 +185,12 @@ Dự án dùng [Claude Code](https://claude.com/claude-code) để hỗ trợ ph
 ## Lộ trình
 
 - [x] Khung dự án backend và frontend
-- [x] Đăng nhập, phân quyền, đổi mật khẩu
-- [x] Thông tin quán (`shop`)
-- [x] Chi nhánh (`branch`)
-- [x] Game và thể loại (`game`)
-- [ ] Bảng giá (`price-plan`)
-- [x] Menu đồ ăn, nước uống (`menu`)
-- [ ] Khuyến mãi (`promotion`)
+- [x] Đăng nhập, phân quyền, đổi mật khẩu <!-- roadmap:auth -->
+- [x] Thông tin quán (`shop`) <!-- roadmap:shop -->
+- [x] Chi nhánh (`branch`) <!-- roadmap:branch -->
+- [x] Game và thể loại (`game`) <!-- roadmap:game -->
+- [x] Bảng giá theo loại phòng và chi nhánh (`price-plan`) <!-- roadmap:price-plan -->
+- [x] Menu đồ ăn, nước uống (`menu`) <!-- roadmap:menu -->
+- [ ] Khuyến mãi (`promotion`) <!-- roadmap:promotion -->
 - [ ] Test tự động đầy đủ cho từng tính năng
 - [ ] Upload ảnh (hiện chỉ lưu đường dẫn ảnh)

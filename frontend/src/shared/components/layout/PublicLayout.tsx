@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Outlet } from 'react-router'
+import { Outlet, ScrollRestoration } from 'react-router'
 
 import { PublicHeader, type PublicNavItem } from './PublicHeader'
 
@@ -18,6 +18,8 @@ export interface PublicLayoutProps {
 export function PublicLayout({ navItems = [], cta, footer }: PublicLayoutProps) {
   return (
     <div className="neon-backdrop isolate flex min-h-screen flex-col">
+      {/* Đổi trang thì cuộn lên đầu; quay lại thì về chỗ cũ. Khóa theo đường dẫn để đổi ?page=, ?q= trên cùng trang không bị kéo lên đầu */}
+      <ScrollRestoration getKey={(location) => location.pathname} />
       <PublicHeader navItems={navItems} cta={cta} />
 
       <main className="flex-1">

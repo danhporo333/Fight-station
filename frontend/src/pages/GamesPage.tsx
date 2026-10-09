@@ -7,6 +7,7 @@ import {
   GAMES_PER_PAGE,
   GameFilters,
   GameList,
+  PsPlusNotice,
   readIdParam,
 } from '@/features/game'
 import { SectionHeading } from '@/shared/components/ui/SectionHeading'
@@ -45,6 +46,7 @@ export function GamesPage() {
       <SectionHeading as="h1" tag="Game Library" title="Kho game" accent="Khủng bố">
         Các tựa game đang có tại quán. Chọn chi nhánh hoặc thể loại để xem nhanh.
       </SectionHeading>
+      <PsPlusNotice />
       {/* scroll-mt: chừa chỗ cho header dính khi cuộn tới */}
       <div ref={listTopRef} className="scroll-mt-20">
         <div className="mb-6 flex justify-center">

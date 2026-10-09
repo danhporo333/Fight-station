@@ -24,7 +24,7 @@ Hiển thị game của quán theo thể loại, lọc theo chi nhánh và tìm 
 | `/admin/games/new`, `/admin/games/:id/edit` | `AdminGameNewPage`, `AdminGameEditPage` (form có ô tick 1–5 thể loại) | Admin | như trên |
 | `/admin/game-categories` | `AdminGameCategoriesPage`: thêm ở đầu trang, sửa ngay trên dòng, xóa | Admin | như trên; menu "Thể loại game" |
 
-Trang chủ (`src/pages/HomePage.tsx`): hero thêm số "Tựa game" (`useGameCount`), nút "Xem game" → `/games`, mục `#games` "Kho game **Khủng bố**" với **`GameCarousel`** (dải tối đa 16 game tự trượt sang trái) + nút "Xem tất cả game".
+Trang chủ (`src/pages/HomePage.tsx`): hero thêm số "Tựa game" (ghi cố định ở `HERO_GAME_COUNT_LABEL`, không đếm từ DB), nút "Xem game" → `/games`, mục `#games` "Kho game **Khủng bố**" với **`GameCarousel`** (dải tối đa 16 game tự trượt sang trái) + nút "Xem tất cả game".
 
 ## File
 | Thư mục | Nội dung |
@@ -33,11 +33,11 @@ Trang chủ (`src/pages/HomePage.tsx`): hero thêm số "Tựa game" (`useGameCo
 | `services/` | `game.service.ts` (`getGames`, `getGame`, `createGame`, `updateGame`, `deleteGame`, `getBranchOptions`, `BRANCH_OPTIONS_PARAMS`), `game-category.service.ts` |
 | `hooks/` | `game.keys.ts`, `useGames`, `useGameCount`, `useGame`, `useCreateGame`, `useUpdateGame`, `useDeleteGame`, `useInvalidateGames`, `useGameCategories`, `useCreateGameCategory`, `useUpdateGameCategory`, `useDeleteGameCategory`, `useBranchOptions` |
 | `utils/` | `accent.ts` (`ACCENT_TEXT_CLASS`, `ACCENT_SWATCH_CLASS`, `ACCENT_OPTIONS`), `game.utils.ts` (`GAME_SEARCH_PARAMS`, `readIdParam`, chuyển form ↔ API cho game và thể loại), `game-form-errors.ts` (`applyGameErrors`) |
-| `components/` | Công khai: `GameCard`, `GameList`, `GameCarousel`, `GameFilters`. Quản trị: `GameForm` (+ `GameCategoriesField`, `AccentColorField`, `GameBranchesField`), `GameTable`, `AdminGameSearch`, `GameCategoryForm`, `GameCategoryRow` |
+| `components/` | Công khai: `GameCard`, `GameList`, `GameCarousel`, `GameFilters`, `PsPlusNotice` (khung nhắc khách quán còn game trên tài khoản PS Plus, đặt trên trang chủ và `/games`; chữ sửa ở hằng số đầu file). Quản trị: `GameForm` (+ `GameCategoriesField`, `AccentColorField`, `GameBranchesField`), `GameTable`, `AdminGameSearch`, `GameCategoryForm`, `GameCategoryRow` |
 | `pages/` | `AdminGamesPage`, `AdminGameNewPage`, `AdminGameEditPage`, `AdminGameCategoriesPage` |
 
 ## Public API (`index.ts`)
-- `GameCarousel` (prop `limit`), `GameList` (props `query`, `emptyMessage`, `onPageChange`), `GameFilters`, `useGameCount`, `gameAdminRoutes`, `GAME_SEARCH_PARAMS`, `readIdParam`, type `Game`, `GameListQuery`.
+- `GameCarousel` (prop `limit`), `GameList` (props `query`, `emptyMessage`, `onPageChange`), `GameFilters`, `PsPlusNotice`, `useGameCount`, `gameAdminRoutes`, `GAME_SEARCH_PARAMS`, `readIdParam`, type `Game`, `GameListQuery`.
 
 ## Query key
 - `['games', query]` (query gộp `limit`), `['game', id, { includeInactive }]`, `['game-categories', query]`.
@@ -60,6 +60,7 @@ Trang chủ (`src/pages/HomePage.tsx`): hero thêm số "Tựa game" (`useGameCo
 ## Ghi chú UI
 - **`GameCarousel`** (trang chủ, 2026-10-07; từ 2026-10-08 phần dải trượt nằm ở `shared/components/ui/Marquee.tsx` dùng chung với bảng giá và menu, `GameCarousel` chỉ còn lấy dữ liệu và kiểm tra số lượng): danh sách lặp 2 lần trong một hàng `w-max`, chạy `animate-marquee` (keyframes trong `styles/index.css`: `translateX(0 → -50%)`, **60s một vòng**, `linear infinite`) nên nối liền mạch. Khoảng cách giữa thẻ dùng `pr-*` (không dùng `gap`) để 2 bản lặp dài đúng bằng nhau. Rê chuột hoặc focus bên trong thì dừng (`animation-play-state: paused`). Hai mép mờ dần (`mask-image`). Bản lặp thứ 2 `aria-hidden`. `prefers-reduced-motion`: không chạy, cho cuộn ngang. Đang tải, lỗi, hoặc **dưới 6 game** → hiện `GameList` 8 game (lưới) thay vì dải trượt (ít game sẽ hở khoảng trống). Muốn nhanh/chậm hơn: đổi `60s` ở `--animate-marquee`.
 - `GameList` đủ 3 trạng thái: khung xám (tối đa 8), lỗi + "Thử lại", rỗng ("Chưa có game nào." / "Không có game nào khớp bộ lọc." trên `/games` khi đang lọc).
-- `GameFilters`: nút thể loại vuông kiểu prototype (đang chọn nền cam phát sáng), ô tìm có icon kính lúp.
+- `GameFilters`: nút thể loại vuông kiểu prototype (đang chọn nền cam phát sáng), ô tìm có icon kính lúp. Điện thoại (dưới `sm`): nút thể loại nằm **một hàng vuốt ngang** (2026-10-08; xếp nhiều hàng thì 10 thể loại đẩy game xuống gần hết màn hình); từ `sm` trở lên xuống dòng, căn giữa.
+- Lưới game: 2 cột → 3 (`sm`) → **4 (`md`, 768px)** để 8 game/trang chia đúng 2 hàng ở máy tính bảng.
 - Hộp xác nhận xóa chi nhánh (feature `branch`) đã ghi: game chỉ có ở riêng chi nhánh đó sẽ chuyển thành có ở mọi chi nhánh.
 - Chưa có: test chính thức (`/fe-test game`), lọc theo thể loại ở bảng quản trị, upload ảnh poster (chỉ nhập link).

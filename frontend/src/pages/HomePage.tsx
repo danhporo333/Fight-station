@@ -2,7 +2,7 @@ import { Play } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { BranchList, useBranchSummary } from '@/features/branch'
-import { GameCarousel, useGameCount } from '@/features/game'
+import { GameCarousel, PsPlusNotice } from '@/features/game'
 import { MenuCarousel } from '@/features/menu'
 import { PricePlanCarousel } from '@/features/price-plan'
 import { ShopHero, useShop, type HeroStat } from '@/features/shop'
@@ -12,6 +12,9 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
 const BUTTON_CLASS =
   'inline-flex items-center gap-2 px-8 py-4 font-display text-sm font-bold tracking-[0.15em] uppercase transition text-center'
 
+/** Số "tựa game" ở hero: ghi cố định (kho game thực tế lớn hơn số đã nhập trong hệ thống) */
+const HERO_GAME_COUNT_LABEL = '400'
+
 /** Số game trong dải trượt ở trang chủ; xem hết ở /games */
 const HOME_GAME_LIMIT = 16
 
@@ -20,11 +23,10 @@ export function HomePage() {
   useDocumentTitle()
   const { data: shop } = useShop()
   const branchSummary = useBranchSummary()
-  const gameCount = useGameCount()
 
   // Giá trị rỗng hoặc "0" thì ShopHero tự ẩn
   const heroStats: HeroStat[] = [
-    { value: gameCount === undefined ? '' : String(gameCount), label: 'Tựa game' },
+    { value: HERO_GAME_COUNT_LABEL, label: 'Tựa game' },
     ...(branchSummary
       ? [
           { value: String(branchSummary.ps5Total), label: 'Máy PS5' },
@@ -60,6 +62,7 @@ export function HomePage() {
         <SectionHeading tag="Game Library" title="Kho game" accent="Khủng bố">
           Các tựa game đang có tại quán.
         </SectionHeading>
+        <PsPlusNotice />
         <GameCarousel limit={HOME_GAME_LIMIT} />
         <div className="mt-10 flex justify-center">
           <Link

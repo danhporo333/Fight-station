@@ -8,7 +8,7 @@ import { useGameCategories } from '../hooks/useGameCategories'
 import { GAME_SEARCH_PARAMS } from '../utils/game.utils'
 
 const PILL_CLASS =
-  'border px-5 py-2 text-sm font-semibold tracking-[0.1em] uppercase transition hover:border-brand-500 hover:bg-brand-500 hover:text-void'
+  'shrink-0 border px-5 py-2 text-sm font-semibold tracking-[0.1em] whitespace-nowrap uppercase transition hover:border-brand-500 hover:bg-brand-500 hover:text-void'
 const ACTIVE_CLASS = 'border-brand-500 bg-brand-500 text-void shadow-[0_0_15px_rgb(255_106_0/0.4)]'
 const IDLE_CLASS = 'border-brand-500/30 text-muted'
 
@@ -47,10 +47,12 @@ export function GameFilters() {
 
   return (
     <div className="mb-10 flex flex-col items-center gap-6">
+      {/* Điện thoại: một hàng vuốt ngang (10 thể loại xếp nhiều hàng sẽ đẩy game xuống quá xa);
+          từ sm trở lên: xuống dòng, căn giữa */}
       <div
         role="group"
         aria-label="Lọc theo thể loại"
-        className="flex flex-wrap justify-center gap-3"
+        className="-mx-4 flex gap-2 self-stretch overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:justify-center sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0"
       >
         {options.map((option) => {
           const active = option.id === null ? selected === null : selected === String(option.id)

@@ -6,7 +6,8 @@ import { useGames } from '../hooks/useGames'
 import type { GameListQuery } from '../types/game.types'
 import { GameCard } from './GameCard'
 
-const GRID_CLASS = 'grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-6'
+// 4 cột từ md (768px): 8 game/trang chia đúng 2 hàng, không hụt ô cuối như 3 cột (3 + 3 + 2)
+const GRID_CLASS = 'grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:gap-6'
 
 export interface GameListProps {
   /** Bộ lọc và trang (trang ghép đọc từ URL rồi truyền vào) */

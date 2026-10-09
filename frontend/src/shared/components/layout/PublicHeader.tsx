@@ -18,7 +18,10 @@ const LINK_CLASS =
 const CTA_CLASS =
   'clip-skew inline-block bg-linear-135 from-neon-red to-neon-amber px-5 py-2 text-xs font-bold tracking-[0.15em] text-white uppercase transition hover:-translate-y-0.5'
 
-/** Header trang khách: logo, menu (màn hình lớn) hoặc nút ☰ mở menu xổ xuống (điện thoại), nút nổi bật */
+/**
+ * Header trang khách: logo, menu đầy đủ (từ 1024px) hoặc nút ☰ mở menu xổ xuống (điện thoại, máy tính
+ * bảng), nút nổi bật
+ */
 export function PublicHeader({ navItems, cta }: PublicHeaderProps) {
   const [open, setOpen] = useState(false)
   const close = () => setOpen(false)
@@ -49,7 +52,8 @@ export function PublicHeader({ navItems, cta }: PublicHeaderProps) {
           FIGHT STATION
         </Link>
 
-        <div className="hidden items-center gap-8 md:flex">
+        {/* Menu đầy đủ từ lg (1024px): logo + 5 mục + nút cần ~860px, ở md (768px, iPad dọc) bị tràn */}
+        <div className="hidden items-center gap-8 lg:flex">
           <nav aria-label="Menu chính" className="flex gap-8 lg:gap-10">
             {links}
           </nav>
@@ -66,14 +70,14 @@ export function PublicHeader({ navItems, cta }: PublicHeaderProps) {
           aria-controls="mobile-menu"
           aria-label={open ? 'Đóng menu' : 'Mở menu'}
           onClick={() => setOpen((value) => !value)}
-          className="p-1 text-brand-500 md:hidden"
+          className="p-1 text-brand-500 lg:hidden"
         >
           {open ? <X className="size-7" /> : <Menu className="size-7" />}
         </button>
       </div>
 
       {open && (
-        <div id="mobile-menu" className="border-t border-brand-500/20 bg-void/95 md:hidden">
+        <div id="mobile-menu" className="border-t border-brand-500/20 bg-void/95 lg:hidden">
           <nav aria-label="Menu chính" className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-5">
             {links}
             {cta && (

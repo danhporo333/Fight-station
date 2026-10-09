@@ -11,10 +11,13 @@ export function BranchFooterList() {
   if (!branches || branches.length === 0) return null
 
   return (
-    <ul className="flex flex-col gap-2.5">
+    <ul className="flex flex-col gap-0.5">
       {branches.map((branch) => (
         <li key={branch.id}>
-          <Link to="/branches" className="text-muted transition-colors hover:text-brand-500">
+          <Link
+            to="/branches"
+            className="inline-block py-1 text-muted transition-colors hover:text-brand-500"
+          >
             {branch.name}
           </Link>
         </li>

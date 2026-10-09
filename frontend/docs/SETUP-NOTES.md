@@ -93,7 +93,7 @@ Chi tiết feature xem `src/features/auth/context.md`. Thay đổi so với lúc
 | `vite.config.ts` | Proxy `/api` → `http://localhost:8000` (trùng `PORT` backend). **Không** dùng chunk `admin` (mục 5 cũ): mã quản trị tách nhờ lazy route | Đã sửa |
 | `src/app/AdminRoot.tsx` | Gốc nhánh `/admin` (tải lazy): `RequireAuth` + `AdminLayout` + menu `ADMIN_NAV` + `AdminUserMenu` | Tạo mới |
 | `src/app/routes.tsx` | Ghép `/admin/login`, `/admin/account`, nhóm route chỉ owner (`RequireRole`) | Đã sửa |
-| `src/shared/components/layout/AdminLayout.tsx` | Nhận `navItems`, `showOwnerItems`, `actions` qua props (shared không import features) | Đã sửa |
+| `src/shared/components/layout/AdminLayout.tsx` | Nhận `navItems`, `showOwnerItems`, `actions` qua props (shared không import features). Responsive (2026-10-08): từ `md` trở lên có sidebar thu gọn được; điện thoại ẩn sidebar, nút ☰ trên thanh trên mở menu dạng ngăn kéo (đóng khi chọn mục, bấm nền tối hoặc Esc) | Đã sửa |
 | `src/shared/components/ui/Button.tsx`, `TextField.tsx` | Nút có trạng thái loading; ô nhập có nhãn + lỗi, dùng với `register()` | Tạo mới |
 | `src/shared/utils/error-messages.ts` | `ERROR_MESSAGES` theo mã lỗi API, `getErrorMessage(error)` | Tạo mới |
 | `src/shared/utils/form-errors.ts` | `applyServerErrors`: gán `details` từ API vào đúng ô của form | Tạo mới |

@@ -22,7 +22,8 @@ interface ShopFooterProps {
 }
 
 const HEADING = 'mb-5 font-display text-sm tracking-[0.15em] text-brand-500 uppercase'
-const LINK = 'text-muted transition-colors hover:text-brand-500'
+// py-1: vùng bấm cao ~29px trên điện thoại (chữ 21px quá khó bấm); gap danh sách giảm tương ứng
+const LINK = 'inline-block py-1 text-muted transition-colors hover:text-brand-500'
 
 /**
  * Footer trang khách theo prototype: 4 cột (giới thiệu quán + mạng xã hội · Khám phá · Chi nhánh ·
@@ -51,7 +52,7 @@ export function ShopFooter({ links = [], branches }: ShopFooterProps) {
           {links.length > 0 && (
             <nav aria-label="Khám phá">
               <h2 className={HEADING}>Khám phá</h2>
-              <ul className="flex flex-col gap-2.5">
+              <ul className="flex flex-col gap-0.5">
                 {links.map((link) => (
                   <li key={link.to}>
                     <Link to={link.to} className={LINK}>
@@ -73,7 +74,7 @@ export function ShopFooter({ links = [], branches }: ShopFooterProps) {
           {shop && (
             <div>
               <h2 className={HEADING}>Liên hệ</h2>
-              <ul className="flex flex-col gap-2.5">
+              <ul className="flex flex-col gap-0.5">
                 {shop.facebookUrl && (
                   <li>
                     <a
@@ -112,7 +113,7 @@ export function ShopFooter({ links = [], branches }: ShopFooterProps) {
                     </a>
                   </li>
                 )}
-                {shop.hoursLabel && <li className="text-muted">Mở cửa {shop.hoursLabel}</li>}
+                {shop.hoursLabel && <li className="py-1 text-muted">Mở cửa {shop.hoursLabel}</li>}
               </ul>
             </div>
           )}

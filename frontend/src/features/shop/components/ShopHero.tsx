@@ -18,7 +18,7 @@ interface ShopHeroProps {
 const DEFAULT_NAME = 'Fight Station'
 
 /** Dòng phụ ngay dưới tên quán */
-const HERO_SUBTITLE = 'Private room — Xem phim'
+const HERO_SUBTITLE = 'Private room — Nintendo · Cinema'
 
 /**
  * Hero trang chủ (theo prototype): badge, tên quán (chữ đầu nhiễu màu, phần sau chữ viền), tagline,
@@ -75,7 +75,7 @@ export function ShopHero({ stats = [], actions }: ShopHeroProps) {
             <dl className="mt-12 flex flex-wrap gap-x-8 gap-y-6 border-t border-brand-500/20 pt-8">
               {allStats.map((stat) => (
                 <div key={stat.label} className="flex flex-col-reverse">
-                  <dt className="mt-1 font-mono text-xs tracking-[0.15em] text-muted uppercase">
+                  <dt className="mt-1 text-center font-mono text-xs tracking-[0.15em] text-muted uppercase">
                     {stat.label}
                   </dt>
                   <dd className="text-glow font-display text-4xl leading-none font-black text-brand-500">

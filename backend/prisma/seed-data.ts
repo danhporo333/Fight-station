@@ -74,7 +74,7 @@ export interface SeedBranch {
 }
 
 export const seedShop: SeedShop = {
-  name: 'FIGHT STATION Gaming',
+  name: 'FIGHT STATION',
   tagline:
     'Đấu trường PS5 hàng đầu — nơi anh em hội tụ, chinh chiến và bùng cháy. Game bản quyền, ghế gaming cao cấp, đồ ăn nước uống đầy đủ.',
   hoursLabel: '24/7',

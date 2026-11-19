@@ -8,6 +8,18 @@ export const authPublicRoutes: RouteObject[] = [
     path: 'admin/login',
     lazy: async () => ({ Component: (await import('./pages/AdminLoginPage')).AdminLoginPage }),
   },
+  {
+    path: 'admin/forgot-password',
+    lazy: async () => ({
+      Component: (await import('./pages/AdminForgotPasswordPage')).AdminForgotPasswordPage,
+    }),
+  },
+  {
+    path: 'admin/reset-password',
+    lazy: async () => ({
+      Component: (await import('./pages/AdminResetPasswordPage')).AdminResetPasswordPage,
+    }),
+  },
 ]
 
 /** Gắn dưới nhánh `admin` (đã bọc RequireAuth); mọi admin (owner, staff) đều vào được */

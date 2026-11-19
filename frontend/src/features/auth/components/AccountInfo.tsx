@@ -35,6 +35,7 @@ export function AccountInfo() {
   const admin = data.data
   const rows: [string, string][] = [
     ['Tên đăng nhập', admin.username],
+    ['Email khôi phục', admin.email ?? 'Chưa đặt'],
     ['Vai trò', ROLE_LABEL[admin.role]],
     [
       'Đăng nhập gần nhất',

@@ -53,3 +53,9 @@ Nhánh `/admin` ghép ở `src/app/AdminRoot.tsx` (lazy): `RequireAuth` → `Adm
 - Trang tổng quan `/admin` (hiện chuyển tạm sang `/admin/account`).
 - Quản lý tài khoản staff: backend chưa có API.
 - Đồng bộ `auth.store.admin` với `/auth/me` khi owner đổi role của tài khoản đang đăng nhập (hiện phải đăng nhập lại mới thấy role mới).
+
+## Quên mật khẩu (thêm 2026-11-19)
+
+- Route public `admin/forgot-password` (`AdminForgotPasswordPage`) và `admin/reset-password?token=` (`AdminResetPasswordPage`); link "Quên mật khẩu?" ở `LoginForm`.
+- Trang Tài khoản có `UpdateEmailForm` (đặt email khôi phục, cần mật khẩu hiện tại).
+- `useChangePassword` lưu token mới vào `auth.store` (`setAccessToken`) vì đổi mật khẩu làm token cũ hết hiệu lực.

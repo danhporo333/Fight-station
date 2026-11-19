@@ -13,6 +13,8 @@ interface AuthState {
   accessToken: string | null
   admin: AuthAdmin | null
   setSession: (accessToken: string, admin: AuthAdmin) => void
+  /** Thay token, giữ nguyên admin (sau khi đổi mật khẩu token cũ hết hiệu lực) */
+  setAccessToken: (accessToken: string) => void
   clearSession: () => void
 }
 
@@ -24,6 +26,7 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null,
       admin: null,
       setSession: (accessToken, admin) => set({ accessToken, admin }),
+      setAccessToken: (accessToken) => set({ accessToken }),
       clearSession: () => set({ accessToken: null, admin: null }),
     }),
     {

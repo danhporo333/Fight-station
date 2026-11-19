@@ -27,3 +27,30 @@ export const changePasswordSchema = z
   })
 
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>
+
+export const forgotPasswordSchema = z.object({
+  identifier: z.string().trim().min(1, 'Nhập tên đăng nhập hoặc email').max(255),
+})
+
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>
+
+// token lấy từ link trong email (query ?token=), không có ô nhập
+export const resetPasswordSchema = z
+  .object({
+    newPassword: z.string().min(8, 'Mật khẩu mới phải có ít nhất 8 ký tự').max(MAX_PASSWORD_LENGTH),
+    confirmPassword: z.string().min(1, 'Nhập lại mật khẩu mới'),
+  })
+  .refine((data) => data.confirmPassword === data.newPassword, {
+    path: ['confirmPassword'],
+    message: 'Mật khẩu nhập lại không khớp',
+  })
+
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
+
+/** Email rỗng = xoá email khôi phục */
+export const updateEmailSchema = z.object({
+  email: z.union([z.literal(''), z.email('Email không hợp lệ').max(255)]),
+  currentPassword: z.string().min(1, 'Nhập mật khẩu hiện tại').max(MAX_PASSWORD_LENGTH),
+})
+
+export type UpdateEmailInput = z.infer<typeof updateEmailSchema>

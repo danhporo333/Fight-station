@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
+import { Link } from 'react-router'
 
 import { Button } from '@/shared/components/ui/Button'
 import { TextField } from '@/shared/components/ui/TextField'
@@ -50,6 +51,12 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         error={errors.password?.message}
         {...register('password')}
       />
+      <Link
+        to="/admin/forgot-password"
+        className="self-end text-sm text-neutral-400 hover:text-white"
+      >
+        Quên mật khẩu?
+      </Link>
       <Button type="submit" loading={login.isPending} className="mt-2">
         Đăng nhập
       </Button>

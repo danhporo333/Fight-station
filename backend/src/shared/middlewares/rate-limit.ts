@@ -21,6 +21,9 @@ function createLimiter(options: {
 /** Toàn bộ /api/v1: 300 lần / phút / IP */
 export const apiRateLimit = createLimiter(config.rateLimit.api);
 
+/** POST /auth/forgot-password và /auth/reset-password: 5 lần / 15 phút / IP (tính cả lần thành công) */
+export const passwordResetRateLimit = createLimiter(config.rateLimit.passwordReset);
+
 /** Riêng POST /auth/login: đăng nhập **sai** 10 lần / 15 phút / IP (lần đúng không bị tính) */
 export const loginRateLimit = createLimiter({
   ...config.rateLimit.login,

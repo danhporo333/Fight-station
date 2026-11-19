@@ -9,7 +9,9 @@ import { verifyAccessToken } from '@/shared/utils/jwt';
  * cung cấp một service thỏa interface này và app.ts truyền vào createAuthGuards().
  */
 export interface AdminLookup {
-  findById(id: number): Promise<{ id: number; role: AdminRole; isActive: boolean } | null>;
+  findById(
+    id: number,
+  ): Promise<{ id: number; role: AdminRole; isActive: boolean; tokenVersion: number } | null>;
 }
 
 export interface AuthGuards {
@@ -40,6 +42,13 @@ export function createAuthGuards(lookup: AdminLookup): AuthGuards {
     // Đọc lại DB mỗi request: khóa tài khoản hoặc đổi quyền có hiệu lực ngay
     const admin = await lookup.findById(result.payload.sub);
     if (!admin) throw new UnauthorizedError(ErrorCode.AUTH_INVALID_TOKEN, 'Token không hợp lệ');
+    // Đã đổi/đặt lại mật khẩu sau khi token được cấp: buộc đăng nhập lại
+    if (admin.tokenVersion !== result.payload.tokenVersion) {
+      throw new UnauthorizedError(
+        ErrorCode.AUTH_INVALID_TOKEN,
+        'Phiên đăng nhập không còn hiệu lực',
+      );
+    }
     if (!admin.isActive) {
       throw new ForbiddenError(ErrorCode.AUTH_ACCOUNT_LOCKED, 'Tài khoản đã bị khóa');
     }

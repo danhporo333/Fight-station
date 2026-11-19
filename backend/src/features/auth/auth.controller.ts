@@ -3,7 +3,13 @@ import type { RequestHandler } from 'express';
 import { getRequestAdmin } from '@/shared/middlewares';
 import { ok } from '@/shared/utils/response';
 
-import type { ChangePasswordDto, LoginDto } from './auth.dto';
+import type {
+  ChangePasswordDto,
+  ForgotPasswordDto,
+  LoginDto,
+  ResetPasswordDto,
+  UpdateEmailDto,
+} from './auth.dto';
 import type { AuthService } from './auth.service';
 
 export class AuthController {
@@ -18,7 +24,21 @@ export class AuthController {
   };
 
   changePassword: RequestHandler = async (req, res) => {
-    await this.service.changePassword(getRequestAdmin(req).id, req.body as ChangePasswordDto);
+    const { id, role } = getRequestAdmin(req);
+    ok(res, await this.service.changePassword(id, role, req.body as ChangePasswordDto));
+  };
+
+  updateEmail: RequestHandler = async (req, res) => {
+    ok(res, await this.service.updateEmail(getRequestAdmin(req).id, req.body as UpdateEmailDto));
+  };
+
+  forgotPassword: RequestHandler = async (req, res) => {
+    await this.service.forgotPassword(req.body as ForgotPasswordDto);
+    ok(res, null);
+  };
+
+  resetPassword: RequestHandler = async (req, res) => {
+    await this.service.resetPassword(req.body as ResetPasswordDto);
     ok(res, null);
   };
 }

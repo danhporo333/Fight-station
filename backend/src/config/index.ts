@@ -25,5 +25,18 @@ export const config = {
   rateLimit: {
     api: { windowMs: 60 * 1000, limit: 300 },
     login: { windowMs: 15 * 60 * 1000, limit: 10 },
+    // forgot/reset password: tính mọi lượt vì mỗi lượt forgot gửi một email
+    passwordReset: { windowMs: 15 * 60 * 1000, limit: 5 },
+  },
+  mail: {
+    smtpHost: env.SMTP_HOST,
+    smtpPort: env.SMTP_PORT,
+    smtpUser: env.SMTP_USER,
+    smtpPass: env.SMTP_PASS,
+    from: env.MAIL_FROM,
+  },
+  passwordReset: {
+    frontendUrl: env.FRONTEND_URL.replace(/\/+$/, ''),
+    tokenTtlMinutes: env.RESET_TOKEN_TTL_MINUTES,
   },
 };

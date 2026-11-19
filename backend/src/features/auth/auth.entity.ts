@@ -4,18 +4,31 @@ import type { AdminRole } from '@/shared/types/express';
 export interface Admin {
   id: number;
   username: string;
+  /** Email khôi phục mật khẩu; null = chưa đặt */
+  email: string | null;
   role: AdminRole;
   isActive: boolean;
   lastLoginAt: Date | null;
   createdAt: Date;
 }
 
+/** Thông tin guard cần để xác thực token. tokenVersion không trả ra API. */
+export interface AdminSession {
+  id: number;
+  role: AdminRole;
+  isActive: boolean;
+  tokenVersion: number;
+}
+
 /** Phần `admin` trong response đăng nhập (API_SPEC.md mục 7.1) */
 export type AdminSummary = Pick<Admin, 'id' | 'username' | 'role'>;
 
-export interface LoginResult {
+export interface TokenResult {
   accessToken: string;
   expiresIn: number;
+}
+
+export interface LoginResult extends TokenResult {
   admin: AdminSummary;
 }
 
@@ -23,6 +36,7 @@ export interface LoginResult {
 export const ADMIN_SELECT = {
   id: true,
   username: true,
+  email: true,
   role: true,
   isActive: true,
   lastLoginAt: true,

@@ -49,3 +49,12 @@ Dùng chung (ở `src/shared/`): `utils/password.ts` (argon2id), `utils/jwt.ts` 
 ## Chưa làm
 - Test tự động (`/be-test auth`).
 - Quản lý tài khoản staff (thêm/khóa/xóa): API_SPEC chưa có endpoint, hiện chỉ sửa trực tiếp DB.
+
+## Quên mật khẩu (thêm 2026-11-19)
+
+- `POST /auth/forgot-password` `{identifier}` (username hoặc email): luôn 200, không lộ tài khoản có tồn tại. Có email và đang active thì tạo token (`randomBytes(32)`, DB chỉ lưu sha256 trong `password_reset_token`, mỗi tài khoản một token, hạn `RESET_TOKEN_TTL_MINUTES`) và gửi mail qua `core/mailer` (nodemailer). Chưa đặt `SMTP_HOST` thì chỉ ghi link ra log (không ghi ở production).
+- `POST /auth/reset-password` `{token, newPassword}`: token sai/hết hạn/đã dùng → `400 AUTH_006`. Dùng token + đổi mật khẩu trong một transaction (`consumeResetToken`).
+- `PUT /auth/email` `{email, currentPassword}` (admin): đặt/xoá email khôi phục; trùng → `409 AUTH_007`. Email rỗng = xoá.
+- Rate limit forgot/reset: 5 lần / 15 phút / IP (`passwordResetRateLimit`).
+- `admin_user.token_version`: JWT mang `tv`; guard so với DB, đổi/đặt lại mật khẩu tăng version nên mọi token cũ bị `AUTH_002`. `PUT /auth/password` giờ trả `{accessToken, expiresIn}` mới.
+- Test: `auth.service.test.ts` (repository giả). Migration `20261119090000_add_password_reset` cần `npm run prisma:migrate`.

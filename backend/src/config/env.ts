@@ -19,6 +19,17 @@ const envSchema = z.object({
   // Chỉ prisma/seed.ts dùng: tạo tài khoản owner đầu tiên. Không bắt buộc khi chạy app.
   SEED_OWNER_USERNAME: z.string().trim().min(1).max(50).optional(),
   SEED_OWNER_PASSWORD: z.string().min(8, 'SEED_OWNER_PASSWORD phải dài ít nhất 8 ký tự').optional(),
+  SEED_OWNER_EMAIL: z.string().trim().email().max(255).optional(),
+
+  // Gửi email đặt lại mật khẩu. Thiếu SMTP_HOST thì không gửi, chỉ ghi link ra log (dùng khi dev).
+  SMTP_HOST: z.string().trim().min(1).optional(),
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  MAIL_FROM: z.string().trim().min(1).default('Fight Station <no-reply@localhost>'),
+  // Địa chỉ web quản trị, dùng dựng link trong email
+  FRONTEND_URL: z.string().trim().url().default('http://localhost:5173'),
+  RESET_TOKEN_TTL_MINUTES: z.coerce.number().int().min(5).max(1440).default(30),
 });
 
 export type Env = z.infer<typeof envSchema>;

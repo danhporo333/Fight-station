@@ -41,7 +41,12 @@ async function seedOwner(): Promise<void> {
   }
 
   await prisma.adminUser.create({
-    data: { username, passwordHash: await hashPassword(password), role: 'owner' },
+    data: {
+      username,
+      passwordHash: await hashPassword(password),
+      email: env.SEED_OWNER_EMAIL?.toLowerCase() ?? null,
+      role: 'owner',
+    },
   });
   logger.info({ username }, 'seed.owner_created');
 }
